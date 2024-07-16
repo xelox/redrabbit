@@ -1,7 +1,7 @@
 WITH RECURSIVE open_tree AS (
   SELECT *
   FROM nodes
-  WHERE parent_id = NULL
+  WHERE parent_id IS NULL
 
   UNION ALL
 

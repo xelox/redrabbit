@@ -6,9 +6,6 @@ pub mod database;
 
 #[tokio::main]
 async fn main() {
-
-    dbg!(database::nodes::Node::load(None));
-
     let app = Router::new()
         .route("/app", get(serve_app))
         .layer(CorsLayer::new().allow_origin(cors::Any))

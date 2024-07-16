@@ -30,6 +30,7 @@ pub struct NewNode<'a> {
     startdue: Option<&'a i32>,
     deadline: Option<&'a i32>,
     parent_id: Option<&'a i32>,
+    is_open: Option<&'a bool>,
 }
 
 impl<'a> NewNode<'a> {
@@ -143,7 +144,10 @@ impl Node {
         };
 
         match result {
-            Ok(nodes) => Some(Self::build_tree(nodes)),
+            Ok(nodes) => {
+                dbg!(&nodes);
+                Some(Self::build_tree(nodes))
+            },
             Err(err) => {
                 dbg!(err);
                 None
@@ -200,7 +204,8 @@ fn insert() {
         parent_id: None,
         notes: None,
         startdue: None,
-        deadline: None
+        deadline: None,
+        is_open: Some(&true),
     }.save();
 
     NewNode {
@@ -208,7 +213,26 @@ fn insert() {
         parent_id: Some(&1),
         notes: None,
         startdue: None,
-        deadline: None
+        deadline: None,
+        is_open: Some(&true),
+    }.save();
+
+    NewNode {
+        name: &"task3".to_string(),
+        parent_id: Some(&2),
+        notes: None,
+        startdue: None,
+        deadline: None,
+        is_open: Some(&false),
+    }.save();
+
+    NewNode {
+        name: &"task4".to_string(),
+        parent_id: None,
+        notes: None,
+        startdue: None,
+        deadline: None,
+        is_open: Some(&false),
     }.save();
 }
 
