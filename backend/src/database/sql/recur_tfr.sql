@@ -1,6 +1,7 @@
 WITH RECURSIVE open_tree AS (
   SELECT *
   FROM nodes
+  WHERE parent_id = NULL
 
   UNION ALL
 

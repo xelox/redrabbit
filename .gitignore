@@ -1,0 +1,4 @@
+node
+.env
+target
+:db:

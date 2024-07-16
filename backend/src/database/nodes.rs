@@ -1,7 +1,7 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc, usize};
 
-use diesel::{deserialize::{Queryable, QueryableByName}, prelude::Insertable, ExpressionMethods, RunQueryDsl, Selectable};
-use crate::database::{nodes, schema};
+use diesel::{connection::SimpleConnection, deserialize::{Queryable, QueryableByName}, prelude::Insertable, ExpressionMethods, RunQueryDsl, Selectable};
+use crate::database::schema;
 use serde::Serialize;
 
 #[derive(Queryable, Selectable, QueryableByName)]
@@ -131,13 +131,13 @@ impl Node {
 
         let result: Result<Vec<Node>, diesel::result::Error> = match from {
             Some(id) => {
-                let query = include_str!("./recursive_from_id.sql");
+                let query = include_str!("./sql/recur_tfi.sql");
                 diesel::sql_query(query)
                     .bind::<diesel::sql_types::Integer, _>(id)
                     .load(conn)
             },
             None => {
-                let query = include_str!("./recursive_from_root.sql");
+                let query = include_str!("./sql/recur_tfr.sql");
                 diesel::sql_query(query).load(conn)
             }
         };
@@ -151,17 +151,18 @@ impl Node {
         }
     }
 
-    pub fn delete(id: i32) -> bool {
+    pub fn delete(id: i32) -> Result<usize, diesel::result::Error> {
         use schema::nodes;
         let conn = &mut crate::database::get_conn();
+
         diesel::delete(nodes::table)
             .filter(nodes::id.eq(id))
             .execute(conn)
-            .is_ok()
     }
 }
 
 #[derive(Debug)]
+#[derive(Serialize)]
 pub struct TreeNode {
     id: i32,
     name: String,
@@ -194,6 +195,24 @@ impl From<Node> for TreeNode {
 
 #[test]
 fn insert() {
-    Node::delete(1);
+    NewNode {
+        name: &"task1".to_string(),
+        parent_id: None,
+        notes: None,
+        startdue: None,
+        deadline: None
+    }.save();
+
+    NewNode {
+        name: &"task2".to_string(),
+        parent_id: Some(&1),
+        notes: None,
+        startdue: None,
+        deadline: None
+    }.save();
 }
 
+#[test]
+fn delete() {
+    assert_eq!(Node::delete(1), Ok(()));
+}
