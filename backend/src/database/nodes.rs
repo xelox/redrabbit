@@ -214,5 +214,5 @@ fn insert() {
 
 #[test]
 fn delete() {
-    assert_eq!(Node::delete(1), Ok(()));
+    assert!(Node::delete(1).is_ok());
 }
