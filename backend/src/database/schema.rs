@@ -6,7 +6,7 @@ diesel::table! {
         name -> Text,
         startdue -> Nullable<Integer>,
         deadline -> Nullable<Integer>,
-        notes -> Nullable<Text>,
+        notes -> Text,
         done -> Bool,
         started -> Bool,
         parent_id -> Nullable<Integer>,

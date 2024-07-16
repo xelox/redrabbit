@@ -1,10 +1,26 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc, usize};
 
-use diesel::{connection::SimpleConnection, deserialize::{Queryable, QueryableByName}, prelude::Insertable, ExpressionMethods, RunQueryDsl, Selectable};
+use diesel::{
+    associations::Identifiable, deserialize::{Queryable, QueryableByName}, prelude::Insertable, query_builder::AsChangeset, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl, Selectable
+};
 use crate::database::schema;
 use serde::Serialize;
 
-#[derive(Queryable, Selectable, QueryableByName)]
+// diesel::table! {
+//     nodes (id) {
+//         id -> Integer,
+//         name -> Text,
+//         startdue -> Nullable<Integer>,
+//         deadline -> Nullable<Integer>,
+//         notes -> Text,
+//         done -> Bool,
+//         started -> Bool,
+//         parent_id -> Nullable<Integer>,
+//         is_open -> Bool,
+//     }
+// }
+
+#[derive(Queryable, Selectable, QueryableByName, AsChangeset, Identifiable)]
 #[derive(Clone, Debug)]
 #[diesel(table_name = schema::nodes)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
@@ -12,13 +28,13 @@ use serde::Serialize;
 pub struct Node {
     id: i32,
     name: String,
-    notes: Option<String>,
     startdue: Option<i32>,
     deadline: Option<i32>,
+    notes: String,
     done: bool,
     started: bool,
-    is_open: bool,
     parent_id: Option<i32>,
+    is_open: bool,
 }
 
 #[derive(Insertable)]
@@ -26,9 +42,9 @@ pub struct Node {
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct NewNode<'a> {
     name: &'a String,
-    notes: Option<&'a String>,
     startdue: Option<&'a i32>,
     deadline: Option<&'a i32>,
+    notes: Option<&'a String>,
     parent_id: Option<&'a i32>,
     is_open: Option<&'a bool>,
 }
@@ -45,12 +61,25 @@ impl<'a> NewNode<'a> {
 }
 
 impl Node {
+    pub fn update(&self) -> QueryResult<Vec<TreeNode>> {
+        use schema::nodes;
+        let conn = &mut crate::database::get_conn();
+
+        if let Err(err) = diesel::update(nodes::table.find(self.id))
+            .set(self)
+            .execute(conn) {
+            return Err(err);
+        };
+
+        Self::load(Some(self.id))
+    }
+
     fn build_tree(input: Vec<Node>) -> Vec<TreeNode> {
         #[derive(Clone, Debug)]
         pub struct PreTreeNode {
             id: i32,
             name: String,
-            notes: Option<String>,
+            notes: String,
             startdue: Option<i32>,
             deadline: Option<i32>,
             done: bool,
@@ -127,7 +156,7 @@ impl Node {
         output
     }
 
-    pub fn load(from: Option<i32>) -> Option<Vec<TreeNode>> {
+    pub fn load(from: Option<i32>) -> QueryResult<Vec<TreeNode>> {
         let conn = &mut crate::database::get_conn();
 
         let result: Result<Vec<Node>, diesel::result::Error> = match from {
@@ -144,14 +173,8 @@ impl Node {
         };
 
         match result {
-            Ok(nodes) => {
-                dbg!(&nodes);
-                Some(Self::build_tree(nodes))
-            },
-            Err(err) => {
-                dbg!(err);
-                None
-            }
+            Ok(nodes) => Ok(Self::build_tree(nodes)),
+            Err(err) => Err(err)
         }
     }
 
@@ -170,7 +193,7 @@ impl Node {
 pub struct TreeNode {
     id: i32,
     name: String,
-    notes: Option<String>,
+    notes: String,
     startdue: Option<i32>,
     deadline: Option<i32>,
     done: bool,
