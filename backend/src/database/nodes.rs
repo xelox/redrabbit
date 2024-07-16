@@ -1,3 +1,4 @@
+use core::panic;
 use std::{cell::RefCell, collections::HashMap, rc::Rc, usize};
 
 use diesel::{
@@ -86,7 +87,8 @@ impl Node {
             started: bool,
             is_open: bool,
             parent_id: Option<i32>,
-            children: Vec<Rc<RefCell<Self>>>
+            children: Vec<Rc<RefCell<Self>>>,
+            is_child: bool,
         }
 
         impl From<Node> for PreTreeNode {
@@ -102,6 +104,7 @@ impl Node {
                     is_open: src.is_open,
                     parent_id: src.parent_id,
                     children: Vec::new(),
+                    is_child: false,
                 }
             }
         }
@@ -137,9 +140,11 @@ impl Node {
         
         for val in map.values() {
             if let Some(parent_id) = val.borrow().parent_id {
-                let parent = map.get(&parent_id).unwrap();
-                let mut mut_parent_ref = parent.borrow_mut();
-                mut_parent_ref.children.push(val.clone())
+                if let Some(parent) = map.get(&parent_id) {
+                    let mut mut_parent_ref = parent.borrow_mut();
+                    val.borrow_mut().is_child = true;
+                    mut_parent_ref.children.push(val.clone())
+                }
             }
         }
 
@@ -147,7 +152,7 @@ impl Node {
 
         for val in map.values() {
             let node = val.borrow();
-            if node.parent_id.is_none() {
+            if node.is_child == false {
                 let b = <RefCell<PreTreeNode> as Clone>::clone(val).into_inner();
                 output.push(b.into())
             }
@@ -262,4 +267,34 @@ fn insert() {
 #[test]
 fn delete() {
     assert!(Node::delete(1).is_ok());
+}
+
+#[test]
+fn update_down() {
+    assert!(Node {
+        id: 1,
+        name: "task1".into(),
+        startdue: None,
+        deadline: None,
+        is_open: true,
+        notes: "".to_string(),
+        done: true,
+        started: false,
+        parent_id: None
+    }.update().is_ok());
+}
+
+#[test]
+fn update_up() {
+    assert!(Node {
+        id: 3,
+        name: "task3".into(),
+        startdue: None,
+        deadline: None,
+        is_open: true,
+        notes: "".to_string(),
+        done: true,
+        started: false,
+        parent_id: None
+    }.update().is_ok());
 }
