@@ -1,25 +1,10 @@
-use core::panic;
-use std::{cell::RefCell, collections::HashMap, rc::Rc, usize};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use diesel::{
     associations::Identifiable, deserialize::{Queryable, QueryableByName}, prelude::Insertable, query_builder::AsChangeset, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl, Selectable
 };
 use crate::database::schema;
 use serde::Serialize;
-
-// diesel::table! {
-//     nodes (id) {
-//         id -> Integer,
-//         name -> Text,
-//         startdue -> Nullable<Integer>,
-//         deadline -> Nullable<Integer>,
-//         notes -> Text,
-//         done -> Bool,
-//         started -> Bool,
-//         parent_id -> Nullable<Integer>,
-//         is_open -> Bool,
-//     }
-// }
 
 #[derive(Queryable, Selectable, QueryableByName, AsChangeset, Identifiable)]
 #[derive(Clone, Debug)]
@@ -61,18 +46,48 @@ impl<'a> NewNode<'a> {
     }
 }
 
+pub enum BulkChange {
+    Done(bool),
+    Started(bool),
+}
+
 impl Node {
-    pub fn update(&self) -> QueryResult<Vec<TreeNode>> {
+    pub fn update_many(targets: Vec<i32>, what: BulkChange) -> QueryResult<usize> {
         use schema::nodes;
         let conn = &mut crate::database::get_conn();
 
-        if let Err(err) = diesel::update(nodes::table.find(self.id))
-            .set(self)
-            .execute(conn) {
-            return Err(err);
+        #[derive(AsChangeset)]
+        #[diesel(table_name = schema::nodes)]
+        #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+        struct Change {
+            started: Option<bool>, 
+            done: Option<bool>,
+        }
+
+        let change = match what {
+            BulkChange::Done(new) => Change {started: None, done: Some(new)},
+            BulkChange::Started(new) => Change {started: Some(new), done: None},
         };
 
-        Self::load(Some(self.id))
+
+        diesel::update(
+            nodes::table.filter(
+                nodes::id.eq_any(targets)
+            ))
+            .set(change)
+            .execute(conn)
+    }
+
+    pub fn update_self(&self) -> QueryResult<usize> {
+        use schema::nodes;
+        let conn = &mut crate::database::get_conn();
+        
+        diesel::update(
+            nodes::table.filter(
+                nodes::id.eq(self.id)
+            ))
+            .set(self)
+            .execute(conn)
     }
 
     fn build_tree(input: Vec<Node>) -> Vec<TreeNode> {
@@ -267,34 +282,4 @@ fn insert() {
 #[test]
 fn delete() {
     assert!(Node::delete(1).is_ok());
-}
-
-#[test]
-fn update_down() {
-    assert!(Node {
-        id: 1,
-        name: "task1".into(),
-        startdue: None,
-        deadline: None,
-        is_open: true,
-        notes: "".to_string(),
-        done: true,
-        started: false,
-        parent_id: None
-    }.update().is_ok());
-}
-
-#[test]
-fn update_up() {
-    assert!(Node {
-        id: 3,
-        name: "task3".into(),
-        startdue: None,
-        deadline: None,
-        is_open: true,
-        notes: "".to_string(),
-        done: true,
-        started: false,
-        parent_id: None
-    }.update().is_ok());
 }

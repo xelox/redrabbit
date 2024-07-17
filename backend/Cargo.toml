@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 axum = "0.7.5"
-diesel = { version = "2.2.1", features = ["sqlite"] }
+diesel = { version = "2.2.1", features = ["returning_clauses_for_sqlite_3_35", "sqlite"] }
 dotenvy = "0.15.7"
 serde = { version = "1.0.204", features = ["derive"] }
 tokio = {version="1.38.0", features=["full"]}
