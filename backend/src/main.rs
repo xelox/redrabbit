@@ -8,6 +8,8 @@ pub mod api;
 async fn main() {
     let app = Router::new()
         .route("/app", get(serve_app))
+        .route("/app/", get(serve_app))
+        .route("/app/*any", get(serve_app))
         .nest("/api", api::api_router())
         .layer(CorsLayer::new().allow_origin(cors::Any))
         .nest_service("/assets", ServeDir::new("../frontend/dist/assets"))
