@@ -2,6 +2,7 @@ use axum::{ http::{header, HeaderMap}, response::IntoResponse, routing::get, Rou
 use tower_http::{cors::{self, CorsLayer}, services::ServeDir};
 pub mod database;
 pub mod api;
+pub mod util;
 
 
 #[tokio::main]

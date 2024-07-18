@@ -3,7 +3,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use diesel::{
     associations::Identifiable, deserialize::{Queryable, QueryableByName}, prelude::Insertable, query_builder::AsChangeset, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl, Selectable
 };
-use crate::database::schema;
+use crate::{database::schema, util::id::Id};
 use serde::Serialize;
 
 #[derive(Queryable, Selectable, QueryableByName, AsChangeset, Identifiable)]
@@ -12,14 +12,14 @@ use serde::Serialize;
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 #[derive(Serialize)]
 pub struct Node {
-    id: i32,
+    id: Id,
     name: String,
-    startdue: Option<i32>,
-    deadline: Option<i32>,
+    startdue: Option<Id>,
+    deadline: Option<Id>,
     notes: String,
     done: bool,
     started: bool,
-    parent_id: Option<i32>,
+    parent_id: Option<Id>,
     is_open: bool,
 }
 
@@ -28,10 +28,10 @@ pub struct Node {
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct NewNode<'a> {
     name: &'a String,
-    startdue: Option<&'a i32>,
-    deadline: Option<&'a i32>,
+    startdue: Option<&'a Id>,
+    deadline: Option<&'a Id>,
     notes: Option<&'a String>,
-    parent_id: Option<&'a i32>,
+    parent_id: Option<&'a Id>,
     is_open: Option<&'a bool>,
 }
 
@@ -52,7 +52,7 @@ pub enum BulkChange {
 }
 
 impl Node {
-    pub fn update_many(targets: Vec<i32>, what: BulkChange) -> QueryResult<usize> {
+    pub fn update_many(targets: Vec<Id>, what: BulkChange) -> QueryResult<usize> {
         use schema::nodes;
         let conn = &mut crate::database::get_conn();
 
@@ -93,15 +93,15 @@ impl Node {
     fn build_tree(input: Vec<Node>) -> Vec<TreeNode> {
         #[derive(Clone, Debug)]
         pub struct PreTreeNode {
-            id: i32,
+            id: Id,
             name: String,
             notes: String,
-            startdue: Option<i32>,
-            deadline: Option<i32>,
+            startdue: Option<Id>,
+            deadline: Option<Id>,
             done: bool,
             started: bool,
             is_open: bool,
-            parent_id: Option<i32>,
+            parent_id: Option<Id>,
             children: Vec<Rc<RefCell<Self>>>,
             is_child: bool,
         }
@@ -146,7 +146,7 @@ impl Node {
             }
         }
 
-        let map: HashMap<i32, Rc<RefCell<PreTreeNode>>> = HashMap::from_iter(
+        let map: HashMap<Id, Rc<RefCell<PreTreeNode>>> = HashMap::from_iter(
             input.iter().map(|node|{
                 (node.id, Rc::new(RefCell::new(node.clone().into())))
             })
@@ -176,7 +176,7 @@ impl Node {
         output
     }
 
-    pub fn load(from: Option<i32>) -> QueryResult<Vec<TreeNode>> {
+    pub fn load(from: Option<Id>) -> QueryResult<Vec<TreeNode>> {
         let conn = &mut crate::database::get_conn();
 
         let result: Result<Vec<Node>, diesel::result::Error> = match from {
@@ -198,7 +198,7 @@ impl Node {
         }
     }
 
-    pub fn delete(id: i32) -> Result<usize, diesel::result::Error> {
+    pub fn delete(id: Id) -> Result<usize, diesel::result::Error> {
         use schema::nodes;
         let conn = &mut crate::database::get_conn();
 
@@ -211,15 +211,15 @@ impl Node {
 #[derive(Debug)]
 #[derive(Serialize)]
 pub struct TreeNode {
-    id: i32,
+    id: Id,
     name: String,
     notes: String,
-    startdue: Option<i32>,
-    deadline: Option<i32>,
+    startdue: Option<Id>,
+    deadline: Option<Id>,
     done: bool,
     started: bool,
     is_open: bool,
-    parent_id: Option<i32>,
+    parent_id: Option<Id>,
     children: Vec<Self>
 }
 
@@ -253,7 +253,7 @@ fn insert() {
 
     NewNode {
         name: &"task2".to_string(),
-        parent_id: Some(&1),
+        parent_id: Some(&1.into()),
         notes: None,
         startdue: None,
         deadline: None,
@@ -262,7 +262,7 @@ fn insert() {
 
     NewNode {
         name: &"task3".to_string(),
-        parent_id: Some(&2),
+        parent_id: Some(&2.into()),
         notes: None,
         startdue: None,
         deadline: None,
@@ -281,5 +281,5 @@ fn insert() {
 
 #[test]
 fn delete() {
-    assert!(Node::delete(1).is_ok());
+    assert!(Node::delete(1.into()).is_ok());
 }
