@@ -1,4 +1,4 @@
-import type { NodeType } from "../tree";
+import type { NodeType } from "../models/tree";
 
 const backend_request = (path: string, payload: any) => {
   return new Promise<void>((resolve, reject) => {
@@ -28,6 +28,9 @@ export default {
     },
     delete: (new_task: NodeType) => {
         return backend_request('/api/tasks/delete', {new_task});
+    },
+    load: (from_id: string | undefined) => {
+        return backend_request('/api/tasks/load', {from_id});
     }
   } 
 }
