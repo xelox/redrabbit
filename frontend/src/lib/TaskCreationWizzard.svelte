@@ -18,7 +18,7 @@ const create_subtask = () => {
   if (!node) return;
   console.log('creating subtask');
   const new_subtask: TypeNewTask = { name: name_input, notes: notes_input, parent_id: node.id};
-  backend_adapter.tasks.create(new_subtask, node).then(result=>{
+  backend_adapter.tasks.create(new_subtask).then(result=>{
     name_input = ""; notes_input = "";
     if(creation_callback !== undefined) creation_callback(result);
     node = null;

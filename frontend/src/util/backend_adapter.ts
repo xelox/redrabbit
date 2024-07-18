@@ -1,6 +1,6 @@
 import type { NodeType, TypeNewTask } from "../models/tree";
 
-const backend_request = (path: string, payload: any) => {
+const backend_request = (path: string, payload: any, skip_deser?: bool) => {
   let full_path = "http://localhost:8080" + path;
   console.log(full_path);
   return new Promise<any>((resolve, reject) => {
@@ -10,9 +10,13 @@ const backend_request = (path: string, payload: any) => {
       headers,
       body: JSON.stringify(payload)
     }).then(res => {
-      res.json()
-        .then(resolve)
-        .catch(reject)
+        if(!skip_deser) {
+          res.json()
+            .then(resolve)
+            .catch(reject)
+        } else {
+          resolve({})
+        }
     }).catch(reject);
   })
 }
@@ -33,11 +37,11 @@ export default {
     create: (new_task: TypeNewTask) => {
         return backend_request('/api/tasks/create', new_task);
     },
-    delete: (new_task: NodeType) => {
-        return backend_request('/api/tasks/delete', {new_task});
+    delete: (delete_target: {id: string}) => {
+        return backend_request('/api/tasks/delete', delete_target, true);
     },
-    load: (from_id?: string) => {
-        return backend_request('/api/tasks/load', {from_id});
+    load: (id?: string) => {
+        return backend_request('/api/tasks/load', {id});
     }
   } 
 }

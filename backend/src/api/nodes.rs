@@ -4,13 +4,13 @@ use serde::Deserialize;
 use crate::{database::nodes::{NewNode, Node, TreeNode}, util::id::Id};
 
 #[derive(Deserialize)]
-pub struct LoadRequest {
-    from_id: Option<Id>,
+pub struct RequestWithId {
+    id: Option<Id>,
 }
 
 #[debug_handler]
-pub async fn load(Json(req): Json<LoadRequest>) -> Response<Body> {
-    if let Ok(res) = Node::load(req.from_id) {
+pub async fn load(Json(req): Json<RequestWithId>) -> Response<Body> {
+    if let Ok(res) = Node::load(req.id) {
         if let Ok(str) = serde_json::to_string(&res) {
             return Response::builder()
                 .status(200)
@@ -45,3 +45,20 @@ pub async fn create(Json(new_task): Json<NewNode>) -> Response<Body> {
         .unwrap()
 }
 
+pub async fn delete(Json(delete_target): Json<RequestWithId>) -> Response<Body> {
+    if let Some(id) = delete_target.id {
+        if Node::delete(id).is_ok() {
+            return Response::builder()
+                .status(200)
+                .header("Content-Type", "text/plain")
+                .body(Body::from("Ok"))
+                .unwrap()
+        }
+    }
+
+    Response::builder()
+        .status(500)
+        .header("Content-Type", "text/plain")
+        .body(Body::from("Internal Server Error"))
+        .unwrap()
+}

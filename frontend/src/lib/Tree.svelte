@@ -26,7 +26,7 @@ const invoke_task_creation_wizzard = () => {
 }
 
 const delete_task = () => {
-  backend_adapter.tasks.delete(node).then(()=>{
+  backend_adapter.tasks.delete({id: node.id}).then(()=>{
     component.remove();
   });
 }
