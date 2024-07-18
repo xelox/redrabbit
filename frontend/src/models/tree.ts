@@ -17,6 +17,7 @@ export class xDate {
 }
 
 export type NodeType = {
+  id: string,
   name: string,
   notes: string,
   started: boolean,

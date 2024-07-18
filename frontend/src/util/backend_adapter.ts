@@ -3,7 +3,7 @@ import type { NodeType } from "../models/tree";
 const backend_request = (path: string, payload: any) => {
   let full_path = "http://localhost:8080" + path;
   console.log(full_path);
-  return new Promise<void>((resolve, reject) => {
+  return new Promise<any>((resolve, reject) => {
     const headers: HeadersInit = [["Content-Type", "application/json"]];
     fetch(full_path, {
       method: 'POST', 
@@ -36,7 +36,7 @@ export default {
     delete: (new_task: NodeType) => {
         return backend_request('/api/tasks/delete', {new_task});
     },
-    load: (from_id: string | undefined) => {
+    load: (from_id?: string) => {
         return backend_request('/api/tasks/load', {from_id});
     }
   } 
