@@ -1,7 +1,7 @@
 <script lang='ts'>
 import type { NodeType } from "../models/tree";
 import Checkbox from "./Checkbox.svelte";
-import { fade, slide } from 'svelte/transition';
+import { slide } from 'svelte/transition';
 
 export let node: NodeType;
 

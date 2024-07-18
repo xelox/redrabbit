@@ -37,7 +37,7 @@ const handle_left_click = () => { handle_click(true) }
   border: 1px solid black;
   width: 1em;
   aspect-ratio: 1/1;
-  border-radius: 4px;
+  border-radius: 2px;
   position: relative;
 }
 </style>

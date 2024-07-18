@@ -13,11 +13,11 @@ const backend_request = (path: string, payload: any) => {
 export default {
   tasks: {
     update: {
-      done_state: (new_state: boolean) => {
-        return backend_request('/api/tasks/update/done', {new_state});
+      done_state: (changes: {id: number, new_state: boolean}[]) => {
+        return backend_request('/api/tasks/update/done', {changes});
       },
-      started_state: (new_state: boolean) => {
-        return backend_request('/api/tasks/update/started', {new_state});
+      started_state: (changes: {id: number, new_state: boolean}[]) => {
+        return backend_request('/api/tasks/update/started', {changes});
       },
       meta: (new_state: NodeType) => {
         return backend_request('/api/tasks/update/meta', {new_state});
