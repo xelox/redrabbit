@@ -151,9 +151,6 @@ impl Node {
                 (node.id, Rc::new(RefCell::new(node.clone().into())))
             })
         );
-
-        dbg!(&input);
-
         
         for val in map.values() {
             let mut self_ref = val.borrow_mut();
