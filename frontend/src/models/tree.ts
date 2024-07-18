@@ -17,12 +17,14 @@ export class xDate {
 }
 
 export type NodeType = {
-  title: string,
+  name: string,
   notes: string,
   started: boolean,
   done: boolean,
-  startdue: null | xDate,
-  deadline: null | xDate,
+  startdue: null | number,
+  deadline: null | number,
+  children: NodeType[]
+  is_open: boolean,
 }
 
 export class TreeNode {
