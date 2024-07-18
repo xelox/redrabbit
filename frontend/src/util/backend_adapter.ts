@@ -30,8 +30,8 @@ export default {
         return backend_request('/api/tasks/update/meta', {new_state});
       }
     },
-    create: (new_task: TypeNewTask, parent?: NodeType) => {
-        return backend_request('/api/tasks/create', {new_task, parent});
+    create: (new_task: TypeNewTask) => {
+        return backend_request('/api/tasks/create', new_task);
     },
     delete: (new_task: NodeType) => {
         return backend_request('/api/tasks/delete', {new_task});

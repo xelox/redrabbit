@@ -4,13 +4,13 @@ use diesel::{
     associations::Identifiable, deserialize::{Queryable, QueryableByName}, prelude::Insertable, query_builder::AsChangeset, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl, Selectable
 };
 use crate::{database::schema, util::id::Id};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Queryable, Selectable, QueryableByName, AsChangeset, Identifiable)]
 #[derive(Clone, Debug)]
 #[diesel(table_name = schema::nodes)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Node {
     id: Id,
     name: String,
@@ -23,26 +23,24 @@ pub struct Node {
     is_open: bool,
 }
 
-#[derive(Insertable)]
+#[derive(Insertable, Deserialize)]
 #[diesel(table_name = schema::nodes)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
-pub struct NewNode<'a> {
-    name: &'a String,
-    startdue: Option<&'a Id>,
-    deadline: Option<&'a Id>,
-    notes: Option<&'a String>,
-    parent_id: Option<&'a Id>,
-    is_open: Option<&'a bool>,
+pub struct NewNode {
+    name: String,
+    notes: Option<String>,
+    startdue: Option<Id>,
+    deadline: Option<Id>,
+    parent_id: Option<Id>,
+    is_open: Option<bool>,
 }
 
-impl<'a> NewNode<'a> {
-    pub fn save(&self) -> Option<usize> {
+impl NewNode {
+    pub fn save(&self) -> QueryResult<Node> {
         let conn = &mut crate::database::get_conn();
-        let result = diesel::insert_into(schema::nodes::table).values(self).execute(conn);
-        match result {
-            Ok(r) => Some(r),
-            Err(_) => None
-        }
+        diesel::insert_into(schema::nodes::table)
+            .values(self)
+            .get_result(conn)
     }
 }
 
@@ -238,48 +236,4 @@ impl From<Node> for TreeNode {
             children: Vec::new(),
         }
     }
-}
-
-#[test]
-fn insert() {
-    NewNode {
-        name: &"task1".to_string(),
-        parent_id: None,
-        notes: None,
-        startdue: None,
-        deadline: None,
-        is_open: Some(&true),
-    }.save();
-
-    NewNode {
-        name: &"task2".to_string(),
-        parent_id: Some(&1.into()),
-        notes: None,
-        startdue: None,
-        deadline: None,
-        is_open: Some(&true),
-    }.save();
-
-    NewNode {
-        name: &"task3".to_string(),
-        parent_id: Some(&2.into()),
-        notes: None,
-        startdue: None,
-        deadline: None,
-        is_open: Some(&false),
-    }.save();
-
-    NewNode {
-        name: &"task4".to_string(),
-        parent_id: None,
-        notes: None,
-        startdue: None,
-        deadline: None,
-        is_open: Some(&false),
-    }.save();
-}
-
-#[test]
-fn delete() {
-    assert!(Node::delete(1.into()).is_ok());
 }

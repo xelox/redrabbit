@@ -2,30 +2,25 @@
 import type { NodeType, TypeNewTask } from "../models/tree";
     import backend_adapter from "../util/backend_adapter";
 
-let node: NodeType | null = {
-  id: '1',
-  name: 'some task',
-  notes: '',
-  started: false,
-  done: false,
-  startdue: 0,
-  deadline: 0,
-  children: [],
-  is_open: false,
-};
+let node: NodeType | null = null;
+let creation_callback: ((new_task: NodeType) => void) | undefined = undefined;
 
 let name_input = "";
 let notes_input = "";
 
 window.addEventListener('invoke_task_creation_wizzard', ((e: CustomEvent) => {
   node = e.detail.parent; 
+  creation_callback = e.detail.callback;
+
 }) as EventListener)
 
 const create_subtask = () => {
   if (!node) return;
-  const new_subtask: TypeNewTask = { name: name_input, notes: notes_input };
-  backend_adapter.tasks.create(new_subtask, node).then(()=>{
+  console.log('creating subtask');
+  const new_subtask: TypeNewTask = { name: name_input, notes: notes_input, parent_id: node.id};
+  backend_adapter.tasks.create(new_subtask, node).then(result=>{
     name_input = ""; notes_input = "";
+    if(creation_callback !== undefined) creation_callback(result);
     node = null;
   })
 }
@@ -42,7 +37,7 @@ const create_subtask = () => {
       </div>
       <div class="input_wrap">
         <label for="notes">Task Notes:</label> <br>
-        <input type="text" name="notes" bind:value={name_input}>
+        <input type="text" name="notes" bind:value={notes_input}>
       </div>
 
       <div class="foot_wrap">

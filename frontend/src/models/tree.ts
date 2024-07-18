@@ -15,4 +15,5 @@ export type TypeNewTask = {
   notes: string,
   startdue?: number,
   deadline?: number,
+  parent_id?: string,
 }

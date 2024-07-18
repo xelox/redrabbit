@@ -1,5 +1,6 @@
 <script lang='ts'>
 import type { NodeType } from "../models/tree";
+import backend_adapter from "../util/backend_adapter";
 import Checkbox from "./Checkbox.svelte";
 import { slide } from 'svelte/transition';
 
@@ -15,12 +16,25 @@ $: {
 }
 
 const invoke_task_creation_wizzard = () => {
-  const e = new CustomEvent('invoke_task_creation_wizzard', { detail: { parent: node } });
+  const e = new CustomEvent('invoke_task_creation_wizzard', { detail: { 
+    parent: node, 
+    callback: (new_task: NodeType) => {
+      node.children = [...node.children, new_task]
+    }
+  }});
   window.dispatchEvent(e);
 }
+
+const delete_task = () => {
+  backend_adapter.tasks.delete(node).then(()=>{
+    component.remove();
+  });
+}
+
+let component: HTMLElement;
 </script>
 
-<main>
+<main bind:this={component}>
   <div class="body">
     <div class="left">
       <Checkbox done={node.done} started={node.started}/>
@@ -28,6 +42,7 @@ const invoke_task_creation_wizzard = () => {
     </div>
     <div class="right">
       <button on:click={invoke_task_creation_wizzard}>+</button>
+      <button on:click={delete_task}>-</button>
     </div>
   </div>
   {#if node.children.length > 0}
