@@ -152,13 +152,16 @@ impl Node {
             })
         );
 
+        dbg!(&input);
+
         
         for val in map.values() {
-            if let Some(parent_id) = val.borrow().parent_id {
+            let mut self_ref = val.borrow_mut();
+            if let Some(parent_id) = self_ref.parent_id {
                 if let Some(parent) = map.get(&parent_id) {
-                    let mut mut_parent_ref = parent.borrow_mut();
-                    val.borrow_mut().is_child = true;
-                    mut_parent_ref.children.push(val.clone())
+                    self_ref.is_child = true;
+                    let mut parent_ref = parent.borrow_mut();
+                    parent_ref.children.push(val.clone())
                 }
             }
         }

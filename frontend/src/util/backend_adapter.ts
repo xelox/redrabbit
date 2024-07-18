@@ -1,8 +1,15 @@
 import type { NodeType } from "../models/tree";
 
 const backend_request = (path: string, payload: any) => {
+  let full_path = "http://localhost:8080" + path;
+  console.log(full_path);
   return new Promise<void>((resolve, reject) => {
-    fetch(path, {method: 'POST', body: JSON.stringify(payload)}).then(res => {
+    const headers: HeadersInit = [["Content-Type", "application/json"]];
+    fetch(full_path, {
+      method: 'POST', 
+      headers,
+      body: JSON.stringify(payload)
+    }).then(res => {
       res.json()
         .then(resolve)
         .catch(reject)

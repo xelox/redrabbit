@@ -1,6 +1,11 @@
 <script lang='ts'>
 import Tree from "./lib/Tree.svelte";
 import { type NodeType } from "./models/tree";
+import backend_adapter from "./util/backend_adapter";
+
+backend_adapter.tasks.load().then(res=>{
+  console.log(res);
+})
 
 let root: NodeType = {
   name: 'n1',

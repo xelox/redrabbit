@@ -1,5 +1,5 @@
 use axum::{ http::{header, HeaderMap}, response::IntoResponse, routing::get, Router};
-use tower_http::{cors::{self, CorsLayer}, services::ServeDir};
+use tower_http::{cors::CorsLayer, services::ServeDir};
 pub mod database;
 pub mod api;
 pub mod util;
@@ -12,7 +12,7 @@ async fn main() {
         .route("/app/", get(serve_app))
         .route("/app/*any", get(serve_app))
         .nest("/api", api::api_router())
-        .layer(CorsLayer::new().allow_origin(cors::Any))
+        .layer(CorsLayer::permissive())
         .nest_service("/assets", ServeDir::new("../frontend/dist/assets"))
         .nest_service("/", ServeDir::new("../../frontend/dist"));
 
