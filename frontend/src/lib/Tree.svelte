@@ -13,6 +13,11 @@ $: {
   }
   subtascks_count = f(node);
 }
+
+const invoke_task_creation_wizzard = () => {
+  const e = new CustomEvent('invoke_task_creation_wizzard', { detail: { parent: node } });
+  window.dispatchEvent(e);
+}
 </script>
 
 <main>
@@ -22,7 +27,7 @@ $: {
       <span class="name"> {node.name} </span>
     </div>
     <div class="right">
-      <button>+</button>
+      <button on:click={invoke_task_creation_wizzard}>+</button>
     </div>
   </div>
   {#if node.children.length > 0}

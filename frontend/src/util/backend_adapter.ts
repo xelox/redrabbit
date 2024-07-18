@@ -1,4 +1,4 @@
-import type { NodeType } from "../models/tree";
+import type { NodeType, TypeNewTask } from "../models/tree";
 
 const backend_request = (path: string, payload: any) => {
   let full_path = "http://localhost:8080" + path;
@@ -30,8 +30,8 @@ export default {
         return backend_request('/api/tasks/update/meta', {new_state});
       }
     },
-    create: (new_task: NodeType) => {
-        return backend_request('/api/tasks/create', {new_task});
+    create: (new_task: TypeNewTask, parent?: NodeType) => {
+        return backend_request('/api/tasks/create', {new_task, parent});
     },
     delete: (new_task: NodeType) => {
         return backend_request('/api/tasks/delete', {new_task});

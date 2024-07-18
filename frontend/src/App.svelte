@@ -1,4 +1,5 @@
 <script lang='ts'>
+    import TaskCreationWizzard from "./lib/TaskCreationWizzard.svelte";
 import Tree from "./lib/Tree.svelte";
 import { type NodeType } from "./models/tree";
 import backend_adapter from "./util/backend_adapter";
@@ -17,6 +18,8 @@ backend_adapter.tasks.load().then(res=>{
     {/each}
   </div>
 </main>
+
+<TaskCreationWizzard/>
 
 <style>
 .tree_wrap {
