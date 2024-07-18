@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use diesel::{deserialize::{FromSql, FromSqlRow}, expression::AsExpression, serialize::{IsNull, ToSql}, sql_types::Integer, sqlite::Sqlite, IntoSql};
+use diesel::{deserialize::{FromSql, FromSqlRow}, expression::AsExpression, serialize::{IsNull, ToSql}, sql_types::Integer, sqlite::Sqlite};
 use serde::{de::{Error, Unexpected, Visitor}, Deserialize, Serialize};
 
 #[derive(Hash)]

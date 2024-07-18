@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.7.5"
+axum = { version = "0.7.5", features = ["macros"] }
 diesel = { version = "2.2.1", features = ["returning_clauses_for_sqlite_3_35", "sqlite"] }
 dotenvy = "0.15.7"
 serde = { version = "1.0.204", features = ["derive"] }
