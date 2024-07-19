@@ -8,8 +8,9 @@ export type TypeTask = {
   done: boolean,
   startdue: null | number,
   deadline: null | number,
-  children: TypeTaskMap,
   is_open: boolean,
+  parent_id: null | string,
+  children: TypeTaskMap,
 }
 
 type TypeTaskOjbectMap = {[id: string]: TypeObjectTask}

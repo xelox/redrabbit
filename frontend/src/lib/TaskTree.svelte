@@ -1,9 +1,9 @@
 <script lang='ts'>
-import { onDestroy, onMount } from "svelte";
-import { from_object, type TypeObjectTask, type TypeTask } from "../models/tasks";
+import {type TypeTask } from "../models/tasks";
 import backend_adapter from "../util/backend_adapter";
 import Checkbox from "./Checkbox.svelte";
 import { slide } from 'svelte/transition';
+import TaskCollection from "./TaskCollection.svelte";
 
 export let node: TypeTask;
 
@@ -23,36 +23,14 @@ const invoke_task_creation_wizzard = () => {
 
 const delete_task = () => {
   backend_adapter.tasks.delete({id: node.id}).then(()=>{
-    component.remove();
+    const e = new CustomEvent(`remove_subtask:${node.parent_id??'root'}`, {detail: {task_id: node.id}});
+    console.log(e)
+    window.dispatchEvent(e);
   });
 }
-
-let component: HTMLElement;
-
-const add_subtask = ((e: CustomEvent) => {
-  const task = from_object(e.detail.new_task as TypeObjectTask);
-  node.children.set(task.id, task);
-  node.children = node.children;
-}) as EventListener
-
-const remove_subtask = ((e: CustomEvent) => {
-  const task_id = e.detail.task_id as string;
-  node.children.delete(task_id);
-  node.children = node.children;
-}) as EventListener
-
-onMount(()=>{
-  window.addEventListener(`add_subtask:${node.id}`, add_subtask)
-  window.addEventListener(`remove_subtask:${node.id}`, remove_subtask)
-})
-onDestroy(() => {
-  window.removeEventListener(`add_subtask:${node.id}`, add_subtask)
-  window.addEventListener(`remove_subtask:${node.id}`, remove_subtask)
-})
-
 </script>
 
-<main bind:this={component}>
+<main>
   <div class="body">
     <div class="left">
       <Checkbox done={node.done} started={node.started}/>
@@ -69,9 +47,7 @@ onDestroy(() => {
     </button>
     {#if node.is_open}
       <div class="children_wrap" transition:slide>
-        {#each node.children.values() as child (child.id)}
-          <svelte:self node={child}/>
-        {/each}
+        <TaskCollection collection={node.children} parent_id={node.id}/>
       </div>
     {/if}
   {/if}
