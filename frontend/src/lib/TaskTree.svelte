@@ -5,7 +5,7 @@ import Checkbox from "./Checkbox.svelte";
 import { slide } from 'svelte/transition';
 import TaskCollection from "./TaskCollection.svelte";
 
-export let node: TypeTask;
+export let task: TypeTask;
 
 let subtascks_count: number;
 $: {
@@ -13,17 +13,17 @@ $: {
     for (const child of t.children.values()) i = f(child, i) + 1;
     return i;
   }
-  subtascks_count = f(node);
+  subtascks_count = f(task);
 }
 
 const invoke_task_creation_wizzard = () => {
-  const e = new CustomEvent('invoke_task_creation_wizzard', { detail: { parent: node, }});
+  const e = new CustomEvent('invoke_task_creation_wizzard', { detail: { parent: task, }});
   window.dispatchEvent(e);
 }
 
 const delete_task = () => {
-  backend_adapter.tasks.delete({id: node.id}).then(()=>{
-    const e = new CustomEvent(`remove_subtask:${node.parent_id??'root'}`, {detail: {task_id: node.id}});
+  backend_adapter.tasks.delete({id: task.id}).then(()=>{
+    const e = new CustomEvent(`remove_subtask:${task.parent_id??'root'}`, {detail: {task_id: task.id}});
     console.log(e)
     window.dispatchEvent(e);
   });
@@ -33,21 +33,21 @@ const delete_task = () => {
 <main>
   <div class="body">
     <div class="left">
-      <Checkbox done={node.done} started={node.started}/>
-      <span class="name"> {node.name} </span>
+      <Checkbox done={task.done} started={task.started}/>
+      <span class="name"> {task.name} </span>
     </div>
     <div class="right">
       <button class='interaction' on:click={invoke_task_creation_wizzard}><span>+</span></button>
       <button class='interaction' on:click={delete_task}><span>-</span></button>
     </div>
   </div>
-  {#if node.children.size > 0}
-    <button on:click={()=>{ node.is_open=!node.is_open}} class="children_divider"> 
+  {#if task.children.size > 0}
+    <button on:click={()=>{ task.is_open=!task.is_open}} class="children_divider"> 
       {subtascks_count} sub task{subtascks_count !== 1 ? 's' : ''}
     </button>
-    {#if node.is_open}
+    {#if task.is_open}
       <div class="children_wrap" transition:slide>
-        <TaskCollection collection={node.children} parent_id={node.id}/>
+        <TaskCollection collection={task.children} parent_id={task.id}/>
       </div>
     {/if}
   {/if}

@@ -31,7 +31,7 @@ onDestroy(() => {
 
 {#each Array.from(collection.values()).sort((a, b) => {return a.id > b.id ? -1 : 1}) as task (task.id)}
   <div class="task_wrap" animate:flip>
-    <TaskTree node={task}/>
+    <TaskTree {task}/>
   </div>
 {/each}
 
