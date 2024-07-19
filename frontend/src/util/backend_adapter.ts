@@ -1,4 +1,4 @@
-import type { TypeTask, TypeNewTask } from "../models/tree";
+import type { TypeTask, TypeNewTask } from "../models/tasks";
 
 const backend_request = (path: string, payload: any, skip_deser?: boolean) => {
   let full_path = "http://localhost:8080" + path;

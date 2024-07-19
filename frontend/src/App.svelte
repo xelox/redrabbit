@@ -2,7 +2,7 @@
 import TaskCreationWizzard from "./lib/TaskCreationWizzard.svelte";
 import TasksToolbar from "./lib/TasksToolbar.svelte";
 import TaskTree from "./lib/TaskTree.svelte";
-import { type TypeTask } from "./models/tree";
+import { type TypeTask } from "./models/tasks";
 import backend_adapter from "./util/backend_adapter";
 
 let roots: TypeTask[] = [];

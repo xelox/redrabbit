@@ -1,5 +1,5 @@
 <script lang='ts'>
-import type { TypeTask } from "../models/tree";
+import type { TypeTask } from "../models/tasks";
 import backend_adapter from "../util/backend_adapter";
 import Checkbox from "./Checkbox.svelte";
 import { slide } from 'svelte/transition';

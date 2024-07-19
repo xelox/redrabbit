@@ -1,5 +1,5 @@
 <script lang='ts'>
-import type { TypeTask, TypeNewTask } from "../models/tree";
+import type { TypeTask, TypeNewTask } from "../models/tasks";
 import backend_adapter from "../util/backend_adapter";
 
 let node: TypeTask | null | true = null;
