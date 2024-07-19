@@ -32,10 +32,7 @@ const delete_task = () => {
 
 <main>
   <div class="body">
-    <div class="left">
-      <Checkbox done={task.done} started={task.started}/>
-      <span class="name"> {task.name} </span>
-    </div>
+    <Checkbox done={task.done} started={task.started}>{task.name}</Checkbox>
     <div class="right">
       <button class='interaction' on:click={invoke_task_creation_wizzard}><span>+</span></button>
       <button class='interaction' on:click={delete_task}><span>-</span></button>
@@ -54,7 +51,7 @@ const delete_task = () => {
 </main>
 
 <style>
-.body, .left, .right {
+.body, .right {
   display: flex;
   flex-direction: row;
   align-items: center;
