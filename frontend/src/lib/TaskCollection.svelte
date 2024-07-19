@@ -3,29 +3,30 @@ import { flip } from "svelte/animate";
 import { from_object, type TypeObjectTask, type TypeTaskMap } from "../models/tasks";
 import TaskTree from "./TaskTree.svelte";
 import { onDestroy, onMount } from "svelte";
+    import xevents, { XEventsCleanup } from "../util/xevents";
 export let collection: TypeTaskMap;
 export let parent_id: string | null;
 
-const add_subtask = ((e: CustomEvent) => {
-  const task = from_object(e.detail.new_task as TypeObjectTask);
+const add_subtask = ((new_task: TypeObjectTask) => {
+  const task = from_object(new_task);
   collection.set(task.id, task);
   collection = collection;
   console.log('added', task);
-}) as EventListener
+});
 
-const remove_subtask = ((e: CustomEvent) => {
-  const task_id = e.detail.task_id as string;
+const remove_subtask = ((task_id: string) => {
   collection.delete(task_id);
   collection = collection;
-}) as EventListener
+});
 
+let cleanup_fns: XEventsCleanup
 onMount(()=>{
-  window.addEventListener(`add_subtask:${parent_id??'root'}`, add_subtask)
-  window.addEventListener(`remove_subtask:${parent_id??'root'}`, remove_subtask)
-})
+    cleanup_fns = xevents.listen(`add_task:${parent_id??'root'}`, add_subtask)
+      .listen(`remove_task:${parent_id??'root'}`, remove_subtask)
+});
+
 onDestroy(() => {
-  window.removeEventListener(`add_subtask:${parent_id??'root'}`, add_subtask)
-  window.addEventListener(`remove_subtask:${parent_id??'root'}`, remove_subtask)
+  cleanup_fns.cleanup();
 })
 </script>
 
