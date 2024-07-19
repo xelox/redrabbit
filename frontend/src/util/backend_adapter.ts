@@ -34,6 +34,9 @@ export default {
         return backend_request('/api/tasks/update/meta', {new_state});
       }
     },
+    expand: (new_state: boolean, target: 'self' | 'children') => {
+        return backend_request('/api/tasks/create', {new_state, target});
+    },
     create: (new_task: TypeNewTask) => {
         return backend_request('/api/tasks/create', new_task);
     },

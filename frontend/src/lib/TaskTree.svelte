@@ -28,6 +28,11 @@ const delete_task = () => {
     window.dispatchEvent(e);
   });
 }
+
+const expand_toggle = () => {
+  backend_adapter.tasks.expand(!task.is_open, 'self')
+}
+
 </script>
 
 <main>
@@ -39,7 +44,7 @@ const delete_task = () => {
     </div>
   </div>
   {#if task.children.size > 0}
-    <button on:click={()=>{ task.is_open=!task.is_open}} class="children_divider"> 
+    <button on:click={expand_toggle} class="children_divider"> 
       {subtascks_count} sub task{subtascks_count !== 1 ? 's' : ''}
     </button>
     {#if task.is_open}
