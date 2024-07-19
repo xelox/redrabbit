@@ -19,7 +19,7 @@ backend_adapter.tasks.load().then(result=>{
   <div class="vessel">
     <TasksToolbar/>
     <div class="tree_wrap">
-      <TaskCollection collection={roots} parent_id={null}/>
+      <TaskCollection parent={null}/>
     </div>
   </div>
 </main>

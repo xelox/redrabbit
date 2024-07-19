@@ -2,20 +2,31 @@
 import {type TypeTask } from "../models/tasks";
 import backend_adapter from "../util/backend_adapter";
 import Checkbox from "./Checkbox.svelte";
-import { slide } from 'svelte/transition';
 import TaskCollection from "./TaskCollection.svelte";
 import xevents from "../util/xevents";
+import { onDestroy, onMount } from "svelte";
 
 export let task: TypeTask;
+let subtask_count: number;
 
-let subtascks_count: number;
-$: {
+const recount_tasks = () => {
+  console.log('updating count', '"', task.name, '"');
+  for (const child of task.children.values()) {
+    child.parent_recount = recount_tasks;
+  }
   let f = (t: TypeTask, i: number = 0) => {
-    for (const child of t.children.values()) i = f(child, i) + 1;
+    for (const child of t.children.values()) {
+      i = f(child, i) + 1;
+    }
     return i;
   }
-  subtascks_count = f(task);
+  subtask_count = f(task);
+  task.parent_recount?.call(null);
 }
+
+onMount(()=>{
+  recount_tasks();
+})
 
 const invoke_task_creation_wizzard = () => {
   xevents.emit('invoke_task_creation_wizzard', task);
@@ -44,14 +55,10 @@ const expand_toggle = () => {
   </div>
   {#if task.children.size > 0}
     <button on:click={expand_toggle} class="children_divider"> 
-      {subtascks_count} sub task{subtascks_count !== 1 ? 's' : ''}
+      {subtask_count} sub task{subtask_count !== 1 ? 's' : ''}
     </button>
-    {#if task.is_open}
-      <div class="children_wrap" transition:slide>
-        <TaskCollection collection={task.children} parent_id={task.id}/>
-      </div>
-    {/if}
   {/if}
+  <TaskCollection {recount_tasks} parent={task}/>
 </main>
 
 <style>
@@ -69,9 +76,6 @@ const expand_toggle = () => {
   justify-content: space-between;
 }
 
-.children_wrap {
-  padding-left: 30px;
-}
 
 .children_divider {
   display: inline;

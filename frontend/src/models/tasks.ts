@@ -11,6 +11,7 @@ export type TypeTask = {
   is_open: boolean,
   parent_id: null | string,
   children: TypeTaskMap,
+  parent_recount?: ()=>void
 }
 
 type TypeTaskOjbectMap = {[id: string]: TypeObjectTask}
