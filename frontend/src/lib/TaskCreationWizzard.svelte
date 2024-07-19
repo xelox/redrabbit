@@ -1,9 +1,8 @@
 <script lang='ts'>
-import type { TypeTask, TypeNewTask } from "../models/tasks";
+import { type TypeTask, type TypeNewTask, from_object } from "../models/tasks";
 import backend_adapter from "../util/backend_adapter";
 
 let node: TypeTask | null | true = null;
-let creation_callback: ((new_task: TypeTask) => void) | undefined = undefined;
 
 let name_input = "";
 let notes_input = "";
@@ -14,7 +13,6 @@ window.addEventListener('invoke_task_creation_wizzard', ((e: CustomEvent) => {
   }
   else {
     node = e.detail.parent; 
-    creation_callback = e.detail.callback;
   }
 
 }) as EventListener)
@@ -23,10 +21,11 @@ const create_subtask = () => {
   if (node === null) return;
   console.log('creating subtask');
   const parent_id = node !== true ? node.id : undefined;
-  const new_subtask: TypeNewTask = { name: name_input, notes: notes_input, parent_id};
-  backend_adapter.tasks.create(new_subtask).then(result=>{
+  const new_task: TypeNewTask = { name: name_input, notes: notes_input, parent_id};
+  backend_adapter.tasks.create(new_task).then(result=>{
     name_input = ""; notes_input = "";
-    if(creation_callback !== undefined) creation_callback(result);
+    const e = new CustomEvent(`add_subtask:${parent_id??'root'}`, {detail: {new_task: from_object(result)}})
+    window.dispatchEvent(e);
     node = null;
   })
 }

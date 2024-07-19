@@ -1,5 +1,6 @@
 <script lang='ts'>
-import type { TypeTask } from "../models/tasks";
+import { onDestroy, onMount } from "svelte";
+import { from_object, type TypeObjectTask, type TypeTask } from "../models/tasks";
 import backend_adapter from "../util/backend_adapter";
 import Checkbox from "./Checkbox.svelte";
 import { slide } from 'svelte/transition';
@@ -9,19 +10,14 @@ export let node: TypeTask;
 let subtascks_count: number;
 $: {
   let f = (t: TypeTask, i: number = 0) => {
-    for (const child of t.children) i = f(child, i) + 1;
+    for (const child of t.children.values()) i = f(child, i) + 1;
     return i;
   }
   subtascks_count = f(node);
 }
 
 const invoke_task_creation_wizzard = () => {
-  const e = new CustomEvent('invoke_task_creation_wizzard', { detail: { 
-    parent: node, 
-    callback: (new_task: TypeTask) => {
-      node.children = [...node.children, new_task]
-    }
-  }});
+  const e = new CustomEvent('invoke_task_creation_wizzard', { detail: { parent: node, }});
   window.dispatchEvent(e);
 }
 
@@ -32,6 +28,28 @@ const delete_task = () => {
 }
 
 let component: HTMLElement;
+
+const add_subtask = ((e: CustomEvent) => {
+  const task = from_object(e.detail.new_task as TypeObjectTask);
+  node.children.set(task.id, task);
+  node.children = node.children;
+}) as EventListener
+
+const remove_subtask = ((e: CustomEvent) => {
+  const task_id = e.detail.task_id as string;
+  node.children.delete(task_id);
+  node.children = node.children;
+}) as EventListener
+
+onMount(()=>{
+  window.addEventListener(`add_subtask:${node.id}`, add_subtask)
+  window.addEventListener(`remove_subtask:${node.id}`, remove_subtask)
+})
+onDestroy(() => {
+  window.removeEventListener(`add_subtask:${node.id}`, add_subtask)
+  window.addEventListener(`remove_subtask:${node.id}`, remove_subtask)
+})
+
 </script>
 
 <main bind:this={component}>
@@ -45,14 +63,16 @@ let component: HTMLElement;
       <button class='interaction' on:click={delete_task}><span>-</span></button>
     </div>
   </div>
-  {#if node.children.length > 0}
-  <button on:click={()=>{node.is_open=!node.is_open}} class="children_divider"> {subtascks_count} sub task{subtascks_count !== 1 ? 's' : ''} </button>
+  {#if node.children.size > 0}
+    <button on:click={()=>{ node.is_open=!node.is_open}} class="children_divider"> 
+      {subtascks_count} sub task{subtascks_count !== 1 ? 's' : ''}
+    </button>
     {#if node.is_open}
-    <div class="children_wrap" transition:slide>
-      {#each node.children as child}
-        <svelte:self node={child}/>
-      {/each}
-    </div>
+      <div class="children_wrap" transition:slide>
+        {#each node.children.values() as child (child.id)}
+          <svelte:self node={child}/>
+        {/each}
+      </div>
     {/if}
   {/if}
 </main>

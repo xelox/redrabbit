@@ -124,10 +124,10 @@ impl Node {
 
         impl From<PreTreeNode> for TreeNode {
             fn from(src: PreTreeNode) -> TreeNode {
-                let mut children = Vec::<TreeNode>::new();
+                let mut children = HashMap::<Id, TreeNode>::new();
                 for w in src.children {
                     let b = <RefCell<PreTreeNode> as Clone>::clone(&w).into_inner();
-                    children.push(b.into())
+                    children.insert(b.id, b.into());
                 }
                 Self {
                     id: src.id,
@@ -218,7 +218,7 @@ pub struct TreeNode {
     started: bool,
     is_open: bool,
     parent_id: Option<Id>,
-    children: Vec<Self>
+    children: HashMap<Id, Self>
 }
 
 impl From<Node> for TreeNode {
@@ -233,7 +233,7 @@ impl From<Node> for TreeNode {
             started: src.started,
             is_open: src.is_open,
             parent_id: src.parent_id,
-            children: Vec::new(),
+            children: HashMap::new(),
         }
     }
 }

@@ -1,4 +1,4 @@
-import { writable } from "svelte/store"
+export type TypeTaskMap = Map<string, TypeTask>;
 
 export type TypeTask = {
   id: string,
@@ -8,9 +8,13 @@ export type TypeTask = {
   done: boolean,
   startdue: null | number,
   deadline: null | number,
-  children: TypeTask[]
+  children: TypeTaskMap,
   is_open: boolean,
 }
+
+type TypeTaskOjbectMap = {[id: string]: TypeObjectTask}
+
+export type TypeObjectTask = Omit<TypeTask, 'children'> & {children: TypeTaskOjbectMap}
 
 export type TypeNewTask = {
   name: string,
@@ -20,4 +24,12 @@ export type TypeNewTask = {
   parent_id?: string,
 }
 
-export const Tasks = writable<TypeTask[]>([]);
+export function from_object(obj: TypeObjectTask): TypeTask {
+  const children = new Map<string, TypeTask>();
+  for (const [id, c] of Object.entries(obj.children)) {
+    children.set(id, from_object(c));
+  }
+  return {
+    ...obj, children
+  }
+}
