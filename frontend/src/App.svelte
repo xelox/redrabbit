@@ -1,13 +1,13 @@
 <script lang='ts'>
-    import TaskCreationWizzard from "./lib/TaskCreationWizzard.svelte";
-    import TasksToolbar from "./lib/TasksToolbar.svelte";
-import Tree from "./lib/Tree.svelte";
-import { type NodeType } from "./models/tree";
+import TaskCreationWizzard from "./lib/TaskCreationWizzard.svelte";
+import TasksToolbar from "./lib/TasksToolbar.svelte";
+import TaskTree from "./lib/TaskTree.svelte";
+import { type TypeTask } from "./models/tree";
 import backend_adapter from "./util/backend_adapter";
 
-let roots: NodeType[] = [];
+let roots: TypeTask[] = [];
 backend_adapter.tasks.load().then(res=>{
-  roots = res as NodeType[];
+  roots = res as TypeTask[];
 })
 
 </script>
@@ -17,7 +17,7 @@ backend_adapter.tasks.load().then(res=>{
     <TasksToolbar/>
     <div class="tree_wrap">
       {#each roots as root}
-        <Tree node={root}/>
+        <TaskTree node={root}/>
       {/each}
     </div>
   </div>

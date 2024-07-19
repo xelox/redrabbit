@@ -1,9 +1,9 @@
 <script lang='ts'>
-import type { NodeType, TypeNewTask } from "../models/tree";
-    import backend_adapter from "../util/backend_adapter";
+import type { TypeTask, TypeNewTask } from "../models/tree";
+import backend_adapter from "../util/backend_adapter";
 
-let node: NodeType | null | true = null;
-let creation_callback: ((new_task: NodeType) => void) | undefined = undefined;
+let node: TypeTask | null | true = null;
+let creation_callback: ((new_task: TypeTask) => void) | undefined = undefined;
 
 let name_input = "";
 let notes_input = "";

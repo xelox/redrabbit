@@ -1,14 +1,14 @@
 <script lang='ts'>
-import type { NodeType } from "../models/tree";
+import type { TypeTask } from "../models/tree";
 import backend_adapter from "../util/backend_adapter";
 import Checkbox from "./Checkbox.svelte";
 import { slide } from 'svelte/transition';
 
-export let node: NodeType;
+export let node: TypeTask;
 
 let subtascks_count: number;
 $: {
-  let f = (t: NodeType, i: number = 0) => {
+  let f = (t: TypeTask, i: number = 0) => {
     for (const child of t.children) i = f(child, i) + 1;
     return i;
   }
@@ -18,7 +18,7 @@ $: {
 const invoke_task_creation_wizzard = () => {
   const e = new CustomEvent('invoke_task_creation_wizzard', { detail: { 
     parent: node, 
-    callback: (new_task: NodeType) => {
+    callback: (new_task: TypeTask) => {
       node.children = [...node.children, new_task]
     }
   }});

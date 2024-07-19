@@ -1,6 +1,6 @@
-import type { NodeType, TypeNewTask } from "../models/tree";
+import type { TypeTask, TypeNewTask } from "../models/tree";
 
-const backend_request = (path: string, payload: any, skip_deser?: bool) => {
+const backend_request = (path: string, payload: any, skip_deser?: boolean) => {
   let full_path = "http://localhost:8080" + path;
   console.log(full_path);
   return new Promise<any>((resolve, reject) => {
@@ -30,7 +30,7 @@ export default {
       started_state: (changes: {id: number, new_state: boolean}[]) => {
         return backend_request('/api/tasks/update/started', {changes});
       },
-      meta: (new_state: NodeType) => {
+      meta: (new_state: TypeTask) => {
         return backend_request('/api/tasks/update/meta', {new_state});
       }
     },

@@ -1,4 +1,6 @@
-export type NodeType = {
+import { writable } from "svelte/store"
+
+export type TypeTask = {
   id: string,
   name: string,
   notes: string,
@@ -6,7 +8,7 @@ export type NodeType = {
   done: boolean,
   startdue: null | number,
   deadline: null | number,
-  children: NodeType[]
+  children: TypeTask[]
   is_open: boolean,
 }
 
@@ -17,3 +19,5 @@ export type TypeNewTask = {
   deadline?: number,
   parent_id?: string,
 }
+
+export const Tasks = writable<TypeTask[]>([]);
