@@ -1,13 +1,10 @@
 <script lang='ts'>
+    import xevents from "../util/xevents";
 import Button from "./Button.svelte";
 import Icon from "./Icon.svelte";
 
 const invoke_task_creation_wizzard = () => {
-  console.log('invokeing wizzard');
-  const e = new CustomEvent('invoke_task_creation_wizzard', {detail: {
-    root_task: true,
-  }});
-  window.dispatchEvent(e);
+  xevents.emit('invoke_task_creation_wizzard', 'root');
 }
 </script>
 

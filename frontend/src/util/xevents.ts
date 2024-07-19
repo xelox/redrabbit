@@ -8,7 +8,7 @@ const event_id_map = new Map<string, Set<number>>();
 export class XEventsCleanup {
   private cleanup_fns: (()=>void)[] = [];
   constructor(...fns: (()=>void)[]) {
-    this.cleanup_fns.concat(fns);
+    this.cleanup_fns.push(...fns)
   }
 
   public listen = (name: string, listener: Listener): XEventsCleanup => {
@@ -16,6 +16,7 @@ export class XEventsCleanup {
     return new XEventsCleanup(...this.cleanup_fns, ...new_cleanup.cleanup_fns);
   }
   public cleanup = () => {
+    console.log('cleaning up ', this.cleanup_fns.length, 'listeners...');
     for (const fn of this.cleanup_fns) fn();
   }
 }
@@ -46,12 +47,12 @@ function listen(name: string, listener: Listener): XEventsCleanup {
   })
 }
 
-function emit(name: string, ...args: []) {
+function emit(name: string, ...args: any[]) {
   const ids = event_id_map.get(name); 
   if (!ids) return;
   for (const id of ids) {
     const listener = event_listener_map.get(id);
-    listener?.call(null, args);
+    listener?.call(null, ...args);
   }
 }
 

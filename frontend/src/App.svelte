@@ -1,17 +1,15 @@
 <script lang='ts'>
 import TaskCreationWizzard from "./lib/TaskCreationWizzard.svelte";
 import TasksToolbar from "./lib/TasksToolbar.svelte";
-import { from_object, type TypeObjectTask, type TypeTaskMap } from "./models/tasks";
+import {type TypeTaskMap } from "./models/tasks";
 import backend_adapter from "./util/backend_adapter";
 import TaskCollection from "./lib/TaskCollection.svelte";
+import xevents from "./util/xevents";
 
 let roots: TypeTaskMap = new Map();
-backend_adapter.tasks.load().then(res=>{
-  for (const obj of (res as TypeObjectTask[])) {
-    roots.set(obj.id, from_object(obj));
-  }
-  roots = roots;
-  console.log(roots);
+backend_adapter.tasks.load().then(result=>{
+  console.log(result);
+  xevents.emit(`add_tasks:root`, result);
 })
 
 

@@ -7,7 +7,6 @@ $: {
   if (done) state = 'd';
   else if (started) state = 's';
   else state = 'u'
-  console.log(state);
 }
 
 

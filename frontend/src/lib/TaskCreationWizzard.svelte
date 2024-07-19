@@ -1,42 +1,41 @@
 <script lang='ts'>
+import { onDestroy } from "svelte";
 import { type TypeTask, type TypeNewTask, from_object } from "../models/tasks";
 import backend_adapter from "../util/backend_adapter";
+import xevents from "../util/xevents";
 
-let node: TypeTask | null | true = null;
+let source_task: TypeTask | null | 'root' = null;
 
 let name_input = "";
 let notes_input = "";
 
-window.addEventListener('invoke_task_creation_wizzard', ((e: CustomEvent) => {
-  if (e.detail.root_task === true) {
-    node = true;
-  }
-  else {
-    node = e.detail.parent; 
-  }
+const xlistener = xevents.listen('invoke_task_creation_wizzard', (task: TypeTask | 'root') => {
+  source_task = task;
+}) 
 
-}) as EventListener)
+onDestroy(()=>{
+  xlistener.cleanup()
+})
 
 const create_subtask = () => {
-  if (node === null) return;
+  if (source_task === null) return;
   console.log('creating subtask');
-  const parent_id = node !== true ? node.id : undefined;
+  const parent_id = source_task !== 'root' ? source_task.id : undefined;
   const new_task: TypeNewTask = { name: name_input, notes: notes_input, parent_id};
   backend_adapter.tasks.create(new_task).then(result=>{
     name_input = ""; notes_input = "";
-    const e = new CustomEvent(`add_subtask:${parent_id??'root'}`, {detail: {new_task: from_object(result)}})
-    window.dispatchEvent(e);
-    node = null;
+    xevents.emit(`add_tasks:${parent_id??'root'}`, [result]);
+    source_task = null;
   })
 }
 
 </script>
 
-{#if node}
+{#if source_task}
   <div class="wrap">
     <main>
-      {#if node !== true}
-        <span>Create new subtask of "{node.name}"</span>
+      {#if source_task !== 'root'}
+        <span>Create new subtask of "{source_task.name}"</span>
       {:else}
         <span>Create new task</span>
       {/if}
@@ -50,7 +49,7 @@ const create_subtask = () => {
       </div>
 
       <div class="foot_wrap">
-        <button style="background: red;" on:click={()=>{node=null}}>Cancel</button>
+        <button style="background: red;" on:click={()=>{source_task=null}}>Cancel</button>
         <button style="background: green;" on:click={create_subtask}>Create</button>
       </div>
     </main>

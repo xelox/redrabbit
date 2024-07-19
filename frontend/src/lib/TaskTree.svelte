@@ -4,6 +4,7 @@ import backend_adapter from "../util/backend_adapter";
 import Checkbox from "./Checkbox.svelte";
 import { slide } from 'svelte/transition';
 import TaskCollection from "./TaskCollection.svelte";
+import xevents from "../util/xevents";
 
 export let task: TypeTask;
 
@@ -17,20 +18,18 @@ $: {
 }
 
 const invoke_task_creation_wizzard = () => {
-  const e = new CustomEvent('invoke_task_creation_wizzard', { detail: { parent: task, }});
-  window.dispatchEvent(e);
+  xevents.emit('invoke_task_creation_wizzard', task);
 }
 
 const delete_task = () => {
-  backend_adapter.tasks.delete({id: task.id}).then(()=>{
-    const e = new CustomEvent(`remove_subtask:${task.parent_id??'root'}`, {detail: {task_id: task.id}});
-    console.log(e)
-    window.dispatchEvent(e);
-  });
+  backend_adapter.tasks.delete({id: task.id}).then(() => {
+    xevents.emit(`remove_task:${task.parent_id??'root'}`, task.id);
+  })
 }
 
 const expand_toggle = () => {
-  backend_adapter.tasks.expand(!task.is_open, 'self')
+  // backend_adapter.tasks.expand(!task.is_open, 'self')
+  task.is_open = !task.is_open;
 }
 
 </script>
