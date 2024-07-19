@@ -2,22 +2,28 @@
 import type { NodeType, TypeNewTask } from "../models/tree";
     import backend_adapter from "../util/backend_adapter";
 
-let node: NodeType | null = null;
+let node: NodeType | null | true = null;
 let creation_callback: ((new_task: NodeType) => void) | undefined = undefined;
 
 let name_input = "";
 let notes_input = "";
 
 window.addEventListener('invoke_task_creation_wizzard', ((e: CustomEvent) => {
-  node = e.detail.parent; 
-  creation_callback = e.detail.callback;
+  if (e.detail.root_task === true) {
+    node = true;
+  }
+  else {
+    node = e.detail.parent; 
+    creation_callback = e.detail.callback;
+  }
 
 }) as EventListener)
 
 const create_subtask = () => {
-  if (!node) return;
+  if (node === null) return;
   console.log('creating subtask');
-  const new_subtask: TypeNewTask = { name: name_input, notes: notes_input, parent_id: node.id};
+  const parent_id = node !== true ? node.id : undefined;
+  const new_subtask: TypeNewTask = { name: name_input, notes: notes_input, parent_id};
   backend_adapter.tasks.create(new_subtask).then(result=>{
     name_input = ""; notes_input = "";
     if(creation_callback !== undefined) creation_callback(result);
@@ -27,10 +33,14 @@ const create_subtask = () => {
 
 </script>
 
-{#if node !== null}
+{#if node}
   <div class="wrap">
     <main>
-      <span>Create new subtask of "{node.name}"</span>
+      {#if node !== true}
+        <span>Create new subtask of "{node.name}"</span>
+      {:else}
+        <span>Create new task</span>
+      {/if}
       <div class="input_wrap">
         <label for="name">Task Name:</label> <br>
         <input type="text" name="name" bind:value={name_input}>

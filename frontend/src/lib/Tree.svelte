@@ -41,8 +41,8 @@ let component: HTMLElement;
       <span class="name"> {node.name} </span>
     </div>
     <div class="right">
-      <button on:click={invoke_task_creation_wizzard}>+</button>
-      <button on:click={delete_task}>-</button>
+      <button class='interaction' on:click={invoke_task_creation_wizzard}><span>+</span></button>
+      <button class='interaction' on:click={delete_task}><span>-</span></button>
     </div>
   </div>
   {#if node.children.length > 0}
@@ -96,5 +96,14 @@ main {
   border-bottom-left-radius: 5px;
   -webkit-box-shadow: -3px 3px 11px 0px rgba(0,0,0,0.17); 
   box-shadow: -3px 3px 11px 0px rgba(0,0,0,0.17);
+}
+
+.interaction {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 22px;
+  aspect-ratio: 1/1;
+  border-radius: 100%;
 }
 </style>
