@@ -204,6 +204,17 @@ impl Node {
             .filter(nodes::id.eq(id))
             .execute(conn)
     }
+
+    pub fn expand_collapse(ids: &Vec<Id>, st: &bool) -> QueryResult<usize> {
+        use schema::nodes;
+        let conn = &mut crate::database::get_conn();
+
+        diesel::update(
+            nodes::table.filter(nodes::id.eq_any(ids))
+        )
+            .set(nodes::is_open.eq(st))
+            .execute(conn)
+    }
 }
 
 #[derive(Debug)]
@@ -237,3 +248,4 @@ impl From<Node> for TreeNode {
         }
     }
 }
+

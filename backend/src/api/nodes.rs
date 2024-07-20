@@ -1,5 +1,5 @@
 use axum::{body::Body, debug_handler, http::Response, Json};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{database::nodes::{NewNode, Node, TreeNode}, util::id::Id};
 
@@ -38,6 +38,29 @@ pub async fn create(Json(new_task): Json<NewNode>) -> Response<Body> {
         };
 
     };
+    Response::builder()
+        .status(500)
+        .header("Content-Type", "text/plain")
+        .body(Body::from("Internal Server Error"))
+        .unwrap()
+}
+
+
+#[derive(Deserialize)]
+pub struct ExpandOptions {
+    ids: Vec<Id>,
+    st: bool,
+}
+
+pub async fn expand(Json(expand_options): Json<ExpandOptions>) -> Response<Body> {
+    if Node::expand_collapse(&expand_options.ids, &expand_options.st).is_ok() {
+        return Response::builder()
+            .status(200)
+            .header("Content-Type", "application/json")
+            .body(Body::from("Ok"))
+            .unwrap();
+    };
+
     Response::builder()
         .status(500)
         .header("Content-Type", "text/plain")

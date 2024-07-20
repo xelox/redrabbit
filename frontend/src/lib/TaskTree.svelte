@@ -4,8 +4,8 @@ import backend_adapter from "../util/backend_adapter";
 import Checkbox from "./Checkbox.svelte";
 import TaskCollection from "./TaskCollection.svelte";
 import xevents from "../util/xevents";
-import { onMount } from "svelte";
-    import type { TypeCtxMenu } from "../models/ctx_menu";
+import { onDestroy, onMount } from "svelte";
+import type { TypeCtxMenu } from "../models/ctx_menu";
 
 export let task: TypeTask;
 let subtask_count: number;
@@ -40,9 +40,40 @@ const delete_task = () => {
 }
 
 const expand_toggle = () => {
-  // backend_adapter.tasks.expand(!task.is_open, 'self')
-  task.is_open = !task.is_open;
+  const st = !task.is_open;
+  backend_adapter.tasks.expand_collapse(st, [task.id]).then(()=>{
+    task.is_open = st;
+  })
 }
+
+const excol_children = (st: boolean) => {
+  const fn = (parent = task, arr = new Array<TypeTask>()) => {
+    for (const child_task of parent.children.values()) {
+      console.log(child_task.name, child_task.id);
+      arr.push(child_task);
+      fn(child_task, arr);
+    }
+    return arr;
+  }
+  const sub_tasks = fn();
+  const ids = sub_tasks.map(v => {return v.id});
+  console.log(sub_tasks);
+  backend_adapter.tasks.expand_collapse(st, ids).then(()=>{
+    for (const sub_task of sub_tasks) {
+      sub_task.is_open = st;
+      xevents.emit(`excol:${sub_task.id}`, st);
+    } 
+  });
+}
+
+const listeners = xevents.listen(`excol:${task.id}`, st => {
+  console.log('excol event', task.name, task.id, st);
+  task.is_open = st; 
+})
+
+onDestroy(()=>{
+  listeners.cleanup();
+})
 
 const open_context_menu = (e: MouseEvent) => {
   e.stopPropagation();
@@ -62,12 +93,19 @@ const open_context_menu = (e: MouseEvent) => {
       separator: true, 
     },
     {
-      name: "Expand This",
+      name: "Toggle Children",
+      callback: expand_toggle,
     },
     {
-      name: "Expand All",
+      name: "Expand All Children",
+      callback: () => {excol_children(true)}
+    },
+    {
+      name: "Collapse All Children",
+      callback: () => {excol_children(false)}
     },
   ];
+
   const position = {x: e.clientX, y: e.clientY};
 
   xevents.emit('open_context_menu', {ctx_menu, position})
@@ -77,7 +115,7 @@ const open_context_menu = (e: MouseEvent) => {
 
 <main on:contextmenu|preventDefault={open_context_menu}>
   <div class="body">
-    <Checkbox done={task.done} started={task.started}>{task.name}</Checkbox>
+    <Checkbox done={task.done} started={task.started}>({task.id}) {task.name}</Checkbox>
     <div class="right">
       <button class='interaction' on:click={invoke_task_creation_wizzard}><span>+</span></button>
       <button class='interaction' on:click={delete_task}><span>-</span></button>
