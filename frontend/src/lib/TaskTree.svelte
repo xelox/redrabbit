@@ -4,7 +4,8 @@ import backend_adapter from "../util/backend_adapter";
 import Checkbox from "./Checkbox.svelte";
 import TaskCollection from "./TaskCollection.svelte";
 import xevents from "../util/xevents";
-import { onDestroy, onMount } from "svelte";
+import { onMount } from "svelte";
+    import type { TypeCtxMenu } from "../models/ctx_menu";
 
 export let task: TypeTask;
 let subtask_count: number;
@@ -43,9 +44,38 @@ const expand_toggle = () => {
   task.is_open = !task.is_open;
 }
 
+const open_context_menu = (e: MouseEvent) => {
+  e.stopPropagation();
+  const ctx_menu: TypeCtxMenu = [
+    {
+      name: "Create Subtask",
+      callback: invoke_task_creation_wizzard,
+    },
+    {
+      name: "Delete",
+      callback: delete_task,
+    },
+    {
+      name: "Pin",
+    },
+    {
+      separator: true, 
+    },
+    {
+      name: "Expand This",
+    },
+    {
+      name: "Expand All",
+    },
+  ];
+  const position = {x: e.clientX, y: e.clientY};
+
+  xevents.emit('open_context_menu', {ctx_menu, position})
+}
+
 </script>
 
-<main>
+<main on:contextmenu|preventDefault={open_context_menu}>
   <div class="body">
     <Checkbox done={task.done} started={task.started}>{task.name}</Checkbox>
     <div class="right">

@@ -5,6 +5,7 @@ import {type TypeTaskMap } from "./models/tasks";
 import backend_adapter from "./util/backend_adapter";
 import TaskCollection from "./lib/TaskCollection.svelte";
 import xevents from "./util/xevents";
+    import ContextMenu from "./lib/ContextMenu.svelte";
 
 let roots: TypeTaskMap = new Map();
 backend_adapter.tasks.load().then(result=>{
@@ -16,6 +17,7 @@ backend_adapter.tasks.load().then(result=>{
 </script>
 
 <main>
+  <ContextMenu/>
   <div class="vessel">
     <TasksToolbar/>
     <div class="tree_wrap">
