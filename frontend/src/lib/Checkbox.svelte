@@ -16,20 +16,18 @@ const test_colors = {
   d: 'green',
 }
 
-const handle_click = (main: boolean) => {
-  if (main) {
-    done = !done;
-  } else if (!done) {
-    started = !started;
-  }
+export let handle_done: (() => void) = () => {
+  done = !done;
+  if (done) started = true;
 }
-const handle_right_click = () => { handle_click(false) }
-const handle_left_click = () => { handle_click(true) }
+export let handle_started: (() => void) = () => {
+  if (!done) started = !started;
+}
 </script>
 
 <button 
-    on:contextmenu|preventDefault={handle_right_click} 
-    on:click={handle_left_click}
+    on:contextmenu|preventDefault={handle_done} 
+    on:click={handle_started}
 >
 <div 
     style="background-color: {test_colors[state]};" >

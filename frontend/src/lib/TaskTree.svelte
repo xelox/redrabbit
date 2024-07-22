@@ -46,17 +46,17 @@ const expand_toggle = () => {
   })
 }
 
-const excol_children = (st: boolean) => {
-  const fn = (parent = task, arr = new Array<TypeTask>()) => {
-    for (const child_task of parent.children.values()) {
-      console.log(child_task.name, child_task.id);
-      arr.push(child_task);
-      fn(child_task, arr);
-    }
-    return arr;
+const collect_descendants = (parent = task, arr = new Array<TypeTask>()) => {
+  for (const child_task of parent.children.values()) {
+    console.log(child_task.name, child_task.id);
+    arr.push(child_task);
+    collect_descendants(child_task, arr);
   }
-  const sub_tasks = fn();
-  const ids = sub_tasks.map(v => {return v.id});
+  return arr;
+}
+const excol_children = (st: boolean) => {
+  const sub_tasks = collect_descendants();
+  const ids = sub_tasks.map(t => t.id);
   console.log(sub_tasks);
   backend_adapter.tasks.expand_collapse(st, ids).then(()=>{
     for (const sub_task of sub_tasks) {
@@ -69,7 +69,10 @@ const excol_children = (st: boolean) => {
 const listeners = xevents.listen(`excol:${task.id}`, st => {
   console.log('excol event', task.name, task.id, st);
   task.is_open = st; 
-})
+}).listen(`ds_update:${task.id}`, (done, started) => {
+  task.done = done;
+  task.started = started;
+});
 
 onDestroy(()=>{
   listeners.cleanup();
@@ -111,11 +114,50 @@ const open_context_menu = (e: MouseEvent) => {
   xevents.emit('open_context_menu', {ctx_menu, position})
 }
 
+const done_click = () => {
+  const done = !task.done;
+  const started = done ?? task.started;
+  const affected_tasks = collect_descendants();
+  affected_tasks.push(task);
+  const ids = affected_tasks.map(t => t.id);
+
+  backend_adapter.tasks.update_completion(done, started, ids).then(() => {
+    for (const task of affected_tasks) {
+      task.done = done;
+      task.started = started;
+      xevents.emit(`ds_update:${task.id}`, done, started);
+    }
+  })
+}
+
+const started_click = () => {
+  const started = !task.started;
+  const done = task.done;
+
+  const affected_tasks = collect_descendants();
+  affected_tasks.push(task);
+  const ids = affected_tasks.map(t => t.id);
+
+  backend_adapter.tasks.update_completion(done, started, ids).then(() => {
+    for (const task of affected_tasks) {
+      task.done = done;
+      task.started = started;
+      xevents.emit(`ds_update:${task.id}`, done, started);
+    }
+  })
+}
+
 </script>
 
 <main on:contextmenu|preventDefault={open_context_menu}>
   <div class="body">
-    <Checkbox done={task.done} started={task.started}>({task.id}) {task.name}</Checkbox>
+    <Checkbox 
+      done={task.done} 
+      started={task.started} 
+      handle_done={done_click} 
+      handle_started={started_click}>
+      ({task.id}) {task.name}
+    </Checkbox>
     <div class="right">
       <button class='interaction' on:click={invoke_task_creation_wizzard}><span>+</span></button>
       <button class='interaction' on:click={delete_task}><span>-</span></button>

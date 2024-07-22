@@ -85,3 +85,27 @@ pub async fn delete(Json(delete_target): Json<RequestWithId>) -> Response<Body> 
         .body(Body::from("Internal Server Error"))
         .unwrap()
 }
+
+
+#[derive(Deserialize)]
+pub struct DoneStartedChanges {
+    ids: Vec<Id>,
+    done: bool,
+    started: bool,
+}
+
+pub async fn update_completion(Json(changes): Json<DoneStartedChanges>) -> Response<Body> {
+    if Node::update_done_started(changes.ids, changes.done, changes.started).is_ok() {
+        return Response::builder()
+            .status(200)
+            .header("Content-Type", "text/plain")
+            .body(Body::from("Ok"))
+            .unwrap()
+    }
+
+    Response::builder()
+        .status(500)
+        .header("Content-Type", "text/plain")
+        .body(Body::from("Internal Server Error"))
+        .unwrap()
+}

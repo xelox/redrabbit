@@ -44,35 +44,16 @@ impl NewNode {
     }
 }
 
-pub enum BulkChange {
-    Done(bool),
-    Started(bool),
-}
-
 impl Node {
-    pub fn update_many(targets: Vec<Id>, what: BulkChange) -> QueryResult<usize> {
+    pub fn update_done_started(targets: Vec<Id>, done: bool, started: bool) -> QueryResult<usize> {
         use schema::nodes;
         let conn = &mut crate::database::get_conn();
-
-        #[derive(AsChangeset)]
-        #[diesel(table_name = schema::nodes)]
-        #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
-        struct Change {
-            started: Option<bool>, 
-            done: Option<bool>,
-        }
-
-        let change = match what {
-            BulkChange::Done(new) => Change {started: None, done: Some(new)},
-            BulkChange::Started(new) => Change {started: Some(new), done: None},
-        };
-
 
         diesel::update(
             nodes::table.filter(
                 nodes::id.eq_any(targets)
             ))
-            .set(change)
+            .set((nodes::done.eq(done), nodes::started.eq(started)))
             .execute(conn)
     }
 

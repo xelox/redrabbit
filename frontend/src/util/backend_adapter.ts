@@ -24,16 +24,8 @@ const backend_request = (path: string, payload: any, skip_deser?: boolean) => {
 
 export default {
   tasks: {
-    update: {
-      done_state: (changes: {id: number, new_state: boolean}[]) => {
-        return backend_request('/api/tasks/update/done', {changes});
-      },
-      started_state: (changes: {id: number, new_state: boolean}[]) => {
-        return backend_request('/api/tasks/update/started', {changes});
-      },
-      meta: (new_state: TypeTask) => {
-        return backend_request('/api/tasks/update/meta', {new_state});
-      }
+    update_completion: (done: boolean, started: boolean, ids: string[]) => {
+      return backend_request('/api/tasks/update_completion', {done, started, ids}, true)
     },
     expand_collapse: (st: boolean, ids: string[]) => {
       return backend_request('/api/tasks/expand_collapse', {st, ids}, true)
