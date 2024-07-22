@@ -6,6 +6,7 @@ import TaskCollection from "./TaskCollection.svelte";
 import xevents from "../util/xevents";
 import { onDestroy, onMount } from "svelte";
 import type { TypeCtxMenu } from "../models/ctx_menu";
+    import undo from "../util/undo";
 
 export let task: TypeTask;
 let subtask_count: number;
@@ -114,6 +115,9 @@ const open_context_menu = (e: MouseEvent) => {
 }
 
 const done_click = () => {
+  const original_done = task.done;
+  const original_started = task.started;
+
   const {done, started} = (() => {
     if (task.done) return { done: false, started: false }
     if (task.started) return { done: true, started: true}
@@ -124,15 +128,27 @@ const done_click = () => {
   affected_tasks.push(task);
   const ids = affected_tasks.map(t => t.id);
 
-  console.log('to update:', ids);
+  const do_callback = () => {
+    backend_adapter.tasks.update_completion(done, started, ids).then(() => {
+      for (const task of affected_tasks) {
+        task.done = done;
+        task.started = started;
+        xevents.emit(`ds_update:${task.id}`, done, started);
+      }
+    })
+  }
 
-  backend_adapter.tasks.update_completion(done, started, ids).then(() => {
-    for (const task of affected_tasks) {
-      task.done = done;
-      task.started = started;
-      xevents.emit(`ds_update:${task.id}`, done, started);
-    }
-  })
+  const undo_callback = () => {
+    backend_adapter.tasks.update_completion(original_done, original_started, ids).then(() => {
+      for (const task of affected_tasks) {
+        task.done = done;
+        task.started = started;
+        xevents.emit(`ds_update:${task.id}`, original_done, original_started);
+      }
+    })
+  }
+  undo.do(do_callback, undo_callback);
+
 }
 
 </script>

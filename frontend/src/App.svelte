@@ -6,6 +6,7 @@ import backend_adapter from "./util/backend_adapter";
 import TaskCollection from "./lib/TaskCollection.svelte";
 import xevents from "./util/xevents";
     import ContextMenu from "./lib/ContextMenu.svelte";
+    import undo from "./util/undo";
 
 let roots: TypeTaskMap = new Map();
 backend_adapter.tasks.load().then(result=>{
@@ -13,6 +14,15 @@ backend_adapter.tasks.load().then(result=>{
   xevents.emit(`add_tasks:root`, result);
 })
 
+document.addEventListener('keydown', function(event: KeyboardEvent) {
+    if (event.ctrlKey && event.key === 'z') {
+      undo.undo();
+    }
+    
+    if (event.ctrlKey && event.key === 'y') {
+      undo.redo();
+    }
+});
 
 </script>
 
