@@ -1,19 +1,28 @@
 <script lang='ts'>
+import Icon from "./Icon.svelte";
+
 export let done: boolean;
 export let started: boolean;
-let state: 'u' | 's' | 'd';
+let state: 'close' | 'check' | 'minus';
 
 $: {
-  if (done) state = 'd';
-  else if (started) state = 's';
-  else state = 'u'
+  if (done) state = 'check';
+  else if (started) state = 'minus';
+  else state = 'close'
 }
 
 
-const test_colors = {
-  u: 'white',
-  s: 'blue',
-  d: 'green',
+abstract class Colors {
+  public static readonly i_map = {
+    close: '#2b0603',
+    minus: '#03122b',
+    check: '#0a2b03',
+  }
+  public static readonly bg_map = {
+    close: '#f2d2d2',
+    minus: '#d2dbf2',
+    check: '#d8f2d2',
+  }
 }
 
 export let handle_done: (() => void) = () => {
@@ -26,12 +35,10 @@ export let handle_started: (() => void) = () => {
 </script>
 
 <button 
-    on:contextmenu|preventDefault={handle_done} 
-    on:click={handle_started}
+    on:contextmenu|preventDefault={handle_started} 
+    on:click={handle_done}
 >
-<div 
-    style="background-color: {test_colors[state]};" >
-</div>
+<div style="background-color: {Colors.bg_map[state]};"> <Icon variant={state} size="10px" color={Colors.i_map[state]}/> </div>
 <slot/>
 </button>
 
@@ -45,12 +52,13 @@ button {
   font-size: 1em;
 }
 div {
-  margin: 0;
-  border: 1px solid black;
-  width: 1em;
+  width: 1.4em;
   aspect-ratio: 1/1;
-  border-radius: 2px;
+  border-radius: 4px;
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 button:hover {
   color: #4a79e8;

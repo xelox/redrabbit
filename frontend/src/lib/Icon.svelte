@@ -1,12 +1,24 @@
 <script lang='ts'>
   abstract class Static {
     public static icons = {
+      check: {
+        src: '/svg-files/Interface and Sign/checkmark.svg',
+        alt: 'Check Icon'
+      },
+      minus: {
+        src: '/svg-files/Interface and Sign/minus.svg',
+        alt: 'Minus Icon'
+      },
+      close: {
+        src: '/svg-files/Interface and Sign/close.svg',
+        alt: 'Minus Icon'
+      },
       chat: {
         src: '/svg-files/Communication/comments-alt-2.svg',
         alt: 'Chat Icon'
       },
       plus: {
-        src: '/svg-files/Interface and Sign/circle-plus.svg',
+        src: '/svg-files/Interface and Sign/plus.svg',
         alt: 'Plus Icon',
       },
       user: {
@@ -37,16 +49,19 @@
   }
 
   export let variant: keyof typeof Static.icons;
-  const icon = Static.icons[variant];
+  $: icon = Static.icons[variant];
   
   export let size = "20px";
+  export let color = "white";
 </script>
 
-<img src={icon.src} alt={icon.alt} title={icon.alt} width={size}> 
+<div style={`mask: url("${icon.src}"); width: ${size}; background-color: ${color};`} title={icon.alt}> </div>
 
 <style>
-img {
-  filter: invert(87%) sepia(6%) saturate(987%) hue-rotate(192deg) brightness(98%) contrast(94%);
+div {
+  mask-size: cover;
+  display: inline-block;
+  background: red;
   aspect-ratio: 1/1;
   margin: 0;
   pointer-events: none;
