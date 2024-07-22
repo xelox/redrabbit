@@ -25,13 +25,16 @@ onDestroy(()=>{
   listener.cleanup();
 })
 
-const use_callback = (e: MouseEvent, callback: (() => void) | undefined) => {
-  e.stopPropagation();
+const use_callback = (callback: (() => void) | undefined) => {
   active = false;
   callback?.call(null);
 }
 
 document.addEventListener('click', e => {
+  if (e.target !== main_dom) active = false;
+})
+
+document.addEventListener('contextmenu', e => {
   if (e.target !== main_dom) active = false;
 })
 
@@ -43,7 +46,7 @@ let main_dom: HTMLElement | undefined;
     {#if item.separator}
       <div class="separator"><span></span></div>
     {:else}
-      <button on:click={e=>{use_callback(e, item.callback)}}>
+      <button on:click|stopPropagation={()=>use_callback(item.callback)}>
         <span class="hover_effect"></span>
         <span class="name"> {item.name} </span>
       </button>

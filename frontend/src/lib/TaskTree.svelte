@@ -79,7 +79,6 @@ onDestroy(()=>{
 })
 
 const open_context_menu = (e: MouseEvent) => {
-  e.stopPropagation();
   const ctx_menu: TypeCtxMenu = [
     {
       name: "Create Subtask",
@@ -149,8 +148,8 @@ const started_click = () => {
 
 </script>
 
-<main on:contextmenu|preventDefault={open_context_menu}>
-  <div class="body">
+<main class='main'>
+  <main class="body" on:contextmenu|self|preventDefault|stopPropagation={open_context_menu}>
     <Checkbox 
       done={task.done} 
       started={task.started} 
@@ -162,7 +161,7 @@ const started_click = () => {
       <button class='interaction' on:click={invoke_task_creation_wizzard}><span>+</span></button>
       <button class='interaction' on:click={delete_task}><span>-</span></button>
     </div>
-  </div>
+  </main>
   {#if task.children.size > 0}
     <button on:click={expand_toggle} class="children_divider"> 
       {subtask_count} sub task{subtask_count !== 1 ? 's' : ''}
@@ -199,7 +198,7 @@ const started_click = () => {
   color: #555;
 }
 
-main {
+.main {
   border-left: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
   padding: 8px;
