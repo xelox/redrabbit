@@ -55,6 +55,13 @@ const collect_descendants = (parent = task, arr = new Array<TypeTask>()) => {
   }
   return arr;
 }
+
+const collect_ancestors = (node = task, arr = new Array<TypeTask>()) => {
+  if (!node.parent) return arr;
+  arr.push(node.parent);
+  return collect_descendants(node, arr);
+}
+
 const excol_children = (st: boolean) => {
   const sub_tasks = collect_descendants();
   const ids = sub_tasks.map(t => t.id);
@@ -115,40 +122,61 @@ const open_context_menu = (e: MouseEvent) => {
 }
 
 const done_click = () => {
-  const original_done = task.done;
-  const original_started = task.started;
-
   const {done, started} = (() => {
     if (task.done) return { done: false, started: false }
     if (task.started) return { done: true, started: true}
     return {done: false, started: true}
   })()
 
-  const affected_tasks = collect_descendants().filter(v=>compare_completion(v, done, started));
-  affected_tasks.push(task);
-  const ids = affected_tasks.map(t => t.id);
+  const before: {[id: string]: {id: string, done: boolean, started: boolean}} = {};
+  
+  const affected_ancestors = collect_ancestors();
+  const affected_descendants = collect_descendants().filter(v=>v.done);
+  affected_descendants.push(task);
+
+  const after: {[id: string]: {id: string, done: boolean, started: boolean}} = {};
+  for (const ancestor of affected_ancestors) {
+    before[ancestor.id] = {id: ancestor.id, done: ancestor.done, started: ancestor.started};
+
+    let a_started = (() => {
+      if (!ancestor.done && !ancestor.started) return done || started;
+      return ancestor.started;
+    })()
+
+    let a_done = ancestor.done;
+    after[ancestor.id] = {id: ancestor.id, done: a_done, started: a_started}
+  }
+
+  for (const v of affected_descendants) {
+    before[v.id] = {id: v.id, done: v.done, started: v.started};
+    after[v.id] = {id: v.id, done, started}
+  }
+
+  const affected = [...affected_ancestors, ...affected_descendants];
+
+  console.log(affected, before, after);
 
   const do_callback = () => {
-    backend_adapter.tasks.update_completion(done, started, ids).then(() => {
-      for (const task of affected_tasks) {
-        task.done = done;
-        task.started = started;
+    backend_adapter.tasks.update_completion(Object.values(after)).then(() => {
+      for (const task of affected) {
+        task.done = after[task.id].done
+        task.started = after[task.id].started
         xevents.emit(`ds_update:${task.id}`, done, started);
       }
     })
   }
 
   const undo_callback = () => {
-    backend_adapter.tasks.update_completion(original_done, original_started, ids).then(() => {
-      for (const task of affected_tasks) {
-        task.done = done;
-        task.started = started;
-        xevents.emit(`ds_update:${task.id}`, original_done, original_started);
+    backend_adapter.tasks.update_completion(Object.values(before)).then(() => {
+      for (const task of affected) {
+        task.done = before[task.id].done
+        task.started = before[task.id].started
+        xevents.emit(`ds_update:${task.id}`, done, started);
       }
     })
   }
-  undo.do(do_callback, undo_callback);
 
+  undo.do(do_callback, undo_callback);
 }
 
 </script>

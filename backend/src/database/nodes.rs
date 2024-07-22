@@ -45,16 +45,19 @@ impl NewNode {
 }
 
 impl Node {
-    pub fn update_done_started(targets: Vec<Id>, done: bool, started: bool) -> QueryResult<usize> {
+    pub fn update_completion(affected: Vec<DoneStartedChanges>) -> QueryResult<usize> {
         use schema::nodes;
         let conn = &mut crate::database::get_conn();
 
-        diesel::update(
-            nodes::table.filter(
-                nodes::id.eq_any(targets)
-            ))
-            .set((nodes::done.eq(done), nodes::started.eq(started)))
-            .execute(conn)
+        for a in &affected {
+            if let Err(err) = diesel::update(nodes::table.filter(nodes::id.eq(a.id)))
+            .set((nodes::done.eq(a.done), nodes::started.eq(a.started)))
+                .execute(conn) {
+                return Err(err)
+            }
+        }
+
+        Ok(affected.len())
     }
 
     pub fn update_self(&self) -> QueryResult<usize> {
@@ -228,5 +231,12 @@ impl From<Node> for TreeNode {
             children: HashMap::new(),
         }
     }
+}
+
+#[derive(Deserialize)]
+pub struct DoneStartedChanges {
+    id: Id,
+    done: bool,
+    started: bool,
 }
 

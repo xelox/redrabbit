@@ -24,8 +24,8 @@ const backend_request = (path: string, payload: any, skip_deser?: boolean) => {
 
 export default {
   tasks: {
-    update_completion: (done: boolean, started: boolean, ids: string[]) => {
-      return backend_request('/api/tasks/update_completion', {done, started, ids}, true)
+    update_completion: (affected: {id: string, done: boolean, started: boolean}[]) => {
+      return backend_request('/api/tasks/update_completion', affected, true)
     },
     expand_collapse: (st: boolean, ids: string[]) => {
       return backend_request('/api/tasks/expand_collapse', {st, ids}, true)

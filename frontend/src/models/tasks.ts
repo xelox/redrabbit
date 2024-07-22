@@ -14,6 +14,7 @@ export type TypeTask = {
   is_open: boolean,
   parent_id: null | string,
   children: TypeTaskMap,
+  parent?: TypeTask,
   parent_recount?: ()=>void
 }
 
@@ -30,22 +31,14 @@ export type TypeNewTask = {
 }
 
 export function compare_completion(task: TypeTask, done: boolean, started: boolean) {
-  console.log('paren:', done, started);
-  console.log('child:', task.done, task.started);
-
-  const res = (() => {
-    if (task.done) {
-      return false;
-    }
-    if (task.started) {
-      return done
-    }
-    return done || started;
-  })()
-  
-  console.log("result:", res);
-  console.log();
-  return res;
+  if (task.done) {
+    return -1;
+  }
+  if (task.started) {
+    return 1
+  }
+  if (started && !done) return 1;
+  return 0;
 }
 
 export function from_object(obj: TypeObjectTask): TypeTask {
@@ -53,7 +46,9 @@ export function from_object(obj: TypeObjectTask): TypeTask {
   for (const [id, c] of Object.entries(obj.children)) {
     children.set(id, from_object(c));
   }
-  return {
-    ...obj, children
+  const task = { ...obj, children }
+  for (const child of task.children.values()) {
+    child.parent = task;
   }
+  return task;
 }

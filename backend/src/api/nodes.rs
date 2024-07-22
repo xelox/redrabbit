@@ -1,7 +1,7 @@
 use axum::{body::Body, debug_handler, http::Response, Json};
 use serde::{Deserialize, Serialize};
 
-use crate::{database::nodes::{NewNode, Node, TreeNode}, util::id::Id};
+use crate::{database::nodes::{DoneStartedChanges, NewNode, Node, TreeNode}, util::id::Id};
 
 #[derive(Deserialize)]
 pub struct RequestWithId {
@@ -87,15 +87,8 @@ pub async fn delete(Json(delete_target): Json<RequestWithId>) -> Response<Body> 
 }
 
 
-#[derive(Deserialize)]
-pub struct DoneStartedChanges {
-    ids: Vec<Id>,
-    done: bool,
-    started: bool,
-}
-
-pub async fn update_completion(Json(changes): Json<DoneStartedChanges>) -> Response<Body> {
-    if Node::update_done_started(changes.ids, changes.done, changes.started).is_ok() {
+pub async fn update_completion(Json(affected): Json<Vec<DoneStartedChanges>>) -> Response<Body> {
+    if Node::update_completion(affected).is_ok() {
         return Response::builder()
             .status(200)
             .header("Content-Type", "text/plain")
