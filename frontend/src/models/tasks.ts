@@ -29,6 +29,25 @@ export type TypeNewTask = {
   parent_id?: string,
 }
 
+export function compare_completion(task: TypeTask, done: boolean, started: boolean) {
+  console.log('paren:', done, started);
+  console.log('child:', task.done, task.started);
+
+  const res = (() => {
+    if (task.done) {
+      return false;
+    }
+    if (task.started) {
+      return done
+    }
+    return done || started;
+  })()
+  
+  console.log("result:", res);
+  console.log();
+  return res;
+}
+
 export function from_object(obj: TypeObjectTask): TypeTask {
   const children = new Map<string, TypeTask>();
   for (const [id, c] of Object.entries(obj.children)) {

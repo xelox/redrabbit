@@ -1,5 +1,5 @@
 <script lang='ts'>
-import {type TypeTask } from "../models/tasks";
+import {compare_completion, type TypeTask } from "../models/tasks";
 import backend_adapter from "../util/backend_adapter";
 import Checkbox from "./Checkbox.svelte";
 import TaskCollection from "./TaskCollection.svelte";
@@ -114,28 +114,17 @@ const open_context_menu = (e: MouseEvent) => {
 }
 
 const done_click = () => {
-  const done = !task.done;
-  const started = done ?? task.started;
-  const affected_tasks = collect_descendants();
+  const {done, started} = (() => {
+    if (task.done) return { done: false, started: false }
+    if (task.started) return { done: true, started: true}
+    return {done: false, started: true}
+  })()
+
+  const affected_tasks = collect_descendants().filter(v=>compare_completion(v, done, started));
   affected_tasks.push(task);
   const ids = affected_tasks.map(t => t.id);
 
-  backend_adapter.tasks.update_completion(done, started, ids).then(() => {
-    for (const task of affected_tasks) {
-      task.done = done;
-      task.started = started;
-      xevents.emit(`ds_update:${task.id}`, done, started);
-    }
-  })
-}
-
-const started_click = () => {
-  const started = !task.started;
-  const done = task.done;
-
-  const affected_tasks = collect_descendants();
-  affected_tasks.push(task);
-  const ids = affected_tasks.map(t => t.id);
+  console.log('to update:', ids);
 
   backend_adapter.tasks.update_completion(done, started, ids).then(() => {
     for (const task of affected_tasks) {
@@ -153,8 +142,8 @@ const started_click = () => {
     <Checkbox 
       done={task.done} 
       started={task.started} 
-      handle_done={done_click} 
-      handle_started={started_click}>
+      handle_click={done_click} 
+    >
       ({task.id}) {task.name}
     </Checkbox>
     <div class="right">

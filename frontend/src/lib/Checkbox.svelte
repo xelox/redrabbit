@@ -25,18 +25,14 @@ abstract class Colors {
   }
 }
 
-export let handle_done: (() => void) = () => {
+export let handle_click: (() => void) = () => {
   done = !done;
   if (done) started = true;
-}
-export let handle_started: (() => void) = () => {
-  if (!done) started = !started;
 }
 </script>
 
 <button 
-    on:contextmenu|preventDefault={handle_started} 
-    on:click={handle_done}
+    on:click={handle_click}
 >
 <div style="background-color: {Colors.bg_map[state]};"> <Icon variant={state} size="10px" color={Colors.i_map[state]}/> </div>
 <slot/>
