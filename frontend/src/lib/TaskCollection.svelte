@@ -27,7 +27,6 @@ const listener = xevents.listen(`add_tasks:${parent?.id??'root'}`, add_subtask)
       .listen(`remove_task:${parent?.id??'root'}`, remove_subtasks)
 
 onDestroy(() => {
-  console.log('destroying...');
   listener.cleanup();
 })
 </script>

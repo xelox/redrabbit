@@ -19,7 +19,6 @@ onDestroy(()=>{
 
 const create_subtask = () => {
   if (source_task === null) return;
-  console.log('creating subtask');
   const parent_id = source_task !== 'root' ? source_task.id : undefined;
   const new_task: TypeNewTask = { name: name_input, notes: notes_input, parent_id};
   backend_adapter.tasks.create(new_task).then(result=>{

@@ -148,11 +148,6 @@ const done_click = () => {
     const a_done = done ? true : descendant.done;
     const a_started = a_done ? true : descendant.started;
 
-    console.log('directive:', 'd:', done, 's:', started);
-    console.log('before:', descendant.id, 'd:', descendant.done, 's:', descendant.started);
-    console.log('after:', descendant.id, 'd:', a_done, 's:', a_started);
-    console.log();
-
     after[descendant.id] = {id: descendant.id, done: a_done, started: a_started}
   }
 
