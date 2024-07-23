@@ -12,7 +12,6 @@ export let task: TypeTask;
 let subtask_count: number;
 
 const recount_tasks = () => {
-  console.log('updating count', '"', task.name, '"');
   for (const child of task.children.values()) {
     child.parent_recount = recount_tasks;
   }
@@ -49,23 +48,23 @@ const expand_toggle = () => {
 
 const collect_descendants = (parent = task, arr = new Array<TypeTask>()) => {
   for (const child_task of parent.children.values()) {
-    console.log(child_task.name, child_task.id);
     arr.push(child_task);
     collect_descendants(child_task, arr);
   }
   return arr;
 }
 
-const collect_ancestors = (node = task, arr = new Array<TypeTask>()) => {
-  if (!node.parent) return arr;
+const collect_ancestors = (node = task, arr = new Array<TypeTask>()): TypeTask[] => {
+  if (node.parent === undefined) { 
+    return arr;
+  }
   arr.push(node.parent);
-  return collect_descendants(node, arr);
+  return collect_ancestors(node.parent, arr);
 }
 
 const excol_children = (st: boolean) => {
   const sub_tasks = collect_descendants();
   const ids = sub_tasks.map(t => t.id);
-  console.log(sub_tasks);
   backend_adapter.tasks.expand_collapse(st, ids).then(()=>{
     for (const sub_task of sub_tasks) {
       sub_task.is_open = st;
@@ -75,7 +74,6 @@ const excol_children = (st: boolean) => {
 }
 
 const listeners = xevents.listen(`excol:${task.id}`, st => {
-  console.log('excol event', task.name, task.id, st);
   task.is_open = st; 
 }).listen(`ds_update:${task.id}`, (done, started) => {
   task.done = done;
@@ -129,12 +127,9 @@ const done_click = () => {
   })()
 
   const before: {[id: string]: {id: string, done: boolean, started: boolean}} = {};
+  const after: {[id: string]: {id: string, done: boolean, started: boolean}} = {};
   
   const affected_ancestors = collect_ancestors();
-  const affected_descendants = collect_descendants().filter(v=>v.done);
-  affected_descendants.push(task);
-
-  const after: {[id: string]: {id: string, done: boolean, started: boolean}} = {};
   for (const ancestor of affected_ancestors) {
     before[ancestor.id] = {id: ancestor.id, done: ancestor.done, started: ancestor.started};
 
@@ -143,24 +138,36 @@ const done_click = () => {
       return ancestor.started;
     })()
 
-    let a_done = ancestor.done;
-    after[ancestor.id] = {id: ancestor.id, done: a_done, started: a_started}
+    after[ancestor.id] = {id: ancestor.id, done: ancestor.done, started: a_started}
   }
 
-  for (const v of affected_descendants) {
-    before[v.id] = {id: v.id, done: v.done, started: v.started};
-    after[v.id] = {id: v.id, done, started}
+  const affected_descendants = collect_descendants();
+  for (const descendant of affected_descendants) {
+    before[descendant.id] = {id: descendant.id, done: descendant.done, started: descendant.started};
+
+    const a_done = done ? true : descendant.done;
+    const a_started = a_done ? true : descendant.started;
+
+    console.log('directive:', 'd:', done, 's:', started);
+    console.log('before:', descendant.id, 'd:', descendant.done, 's:', descendant.started);
+    console.log('after:', descendant.id, 'd:', a_done, 's:', a_started);
+    console.log();
+
+    after[descendant.id] = {id: descendant.id, done: a_done, started: a_started}
   }
 
-  const affected = [...affected_ancestors, ...affected_descendants];
+  before[task.id] = {id: task.id, done: task.done, started: task.started};
+  after[task.id] = {id: task.id, done, started};
 
-  console.log(affected, before, after);
+  const affected = [...affected_ancestors, ...affected_descendants, task];
 
   const do_callback = () => {
     backend_adapter.tasks.update_completion(Object.values(after)).then(() => {
       for (const task of affected) {
-        task.done = after[task.id].done
-        task.started = after[task.id].started
+        const done = after[task.id].done;
+        const started = after[task.id].started;
+        task.done = done;
+        task.started = started;
         xevents.emit(`ds_update:${task.id}`, done, started);
       }
     })
@@ -169,8 +176,10 @@ const done_click = () => {
   const undo_callback = () => {
     backend_adapter.tasks.update_completion(Object.values(before)).then(() => {
       for (const task of affected) {
-        task.done = before[task.id].done
-        task.started = before[task.id].started
+        const done = before[task.id].done;
+        const started = before[task.id].started;
+        task.done = done;
+        task.started = started;
         xevents.emit(`ds_update:${task.id}`, done, started);
       }
     })

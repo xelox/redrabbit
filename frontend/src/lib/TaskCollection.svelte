@@ -10,7 +10,6 @@ $: collection = parent?.children || new Map();
 export let recount_tasks: (() => void) | undefined = undefined;
 
 const add_subtask = ((tasks: TypeObjectTask[]) => {
-  console.log(tasks);
   for (const task of tasks) {
     collection.set(task.id, from_object(task));
   }

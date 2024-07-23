@@ -16,7 +16,6 @@ export class XEventsCleanup {
     return new XEventsCleanup(...this.cleanup_fns, ...new_cleanup.cleanup_fns);
   }
   public cleanup = () => {
-    console.log('cleaning up ', this.cleanup_fns.length, 'listeners...');
     for (const fn of this.cleanup_fns) fn();
   }
 }

@@ -8,7 +8,6 @@ import ContextMenu from "./lib/ContextMenu.svelte";
 import xundo from "./util/xundo";
 
 backend_adapter.tasks.load().then(result=>{
-  console.log(result);
   xevents.emit(`add_tasks:root`, result);
 })
 
