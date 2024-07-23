@@ -6,7 +6,7 @@ import TaskCollection from "./TaskCollection.svelte";
 import xevents from "../util/xevents";
 import { onDestroy, onMount } from "svelte";
 import type { TypeCtxMenu } from "../models/ctx_menu";
-    import undo from "../util/undo";
+import xundo from "../util/xundo";
 
 export let task: TypeTask;
 let subtask_count: number;
@@ -176,7 +176,7 @@ const done_click = () => {
     })
   }
 
-  undo.do(do_callback, undo_callback);
+  xundo.do(do_callback, undo_callback);
 }
 
 </script>

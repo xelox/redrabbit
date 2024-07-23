@@ -1,14 +1,12 @@
 <script lang='ts'>
 import TaskCreationWizzard from "./lib/TaskCreationWizzard.svelte";
 import TasksToolbar from "./lib/TasksToolbar.svelte";
-import {type TypeTaskMap } from "./models/tasks";
 import backend_adapter from "./util/backend_adapter";
 import TaskCollection from "./lib/TaskCollection.svelte";
 import xevents from "./util/xevents";
-    import ContextMenu from "./lib/ContextMenu.svelte";
-    import undo from "./util/undo";
+import ContextMenu from "./lib/ContextMenu.svelte";
+import xundo from "./util/xundo";
 
-let roots: TypeTaskMap = new Map();
 backend_adapter.tasks.load().then(result=>{
   console.log(result);
   xevents.emit(`add_tasks:root`, result);
@@ -16,11 +14,11 @@ backend_adapter.tasks.load().then(result=>{
 
 document.addEventListener('keydown', function(event: KeyboardEvent) {
     if (event.ctrlKey && event.key === 'z') {
-      undo.undo();
+      xundo.undo();
     }
     
     if (event.ctrlKey && event.key === 'y') {
-      undo.redo();
+      xundo.redo();
     }
 });
 
